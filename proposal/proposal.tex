@@ -42,26 +42,26 @@
 	\IEEEauthorblockA{
 		School of Information Science and Technology \\
 		ShanghaiTech University \\
-		Student ID: *Please Fill This In* \\
+		Student ID: 79406120 \\
 	}
 }
 
 \maketitle
 
 \begin{abstract}
-	It has becoming more and more important to guarantee passenger's safety when they are traveling by air. One important thing to do is to check if any passenger is carrying dangerous things. Traditionally we take scans of passengers and let human decide, however, such approach is time waisting and inaccurate. We are going to use deep learning methods to decide that, among 17 critical positions of a human scan, whether he carries dangerous entities or not.
+	The safety issue has always been a major concern since the day that aviation was civilianized. Dectecting whether passengers are carrying any prohibited items is one of the key steps before passenger board the plane. Conventionally, passengers are required to be screened and physically examined by TSA staffs. Such procedure takes time and effort to operate, without guaranteeing the accuracy of checking. Whereas complaints call upon the invasion of personal privacy. With all these being considered, people rarely consider the traditional security check as a satisfactory experience. We propose a computer vision approach, utilizing deep learning method by examining 17 critical positions of human gestures, to facilitate with the detection of prohibited items.
 \end{abstract}
 \section{Introduction}
 	\par
-	This is a challenge proposed in kaggle.com, asking for algorithms that can detect dangerous things based on scans in airport. Traditional human labor can be problematic and time consuming and most importantly, inaccurate. How can we apply learning knowledge to tackle such a problem has become not only interesting but also beneficial to all the passengers' personal safety.
-	\par 
-	In our work we will be focusing on 17 positions of a human body, listed below:
+	This is a Kaggle challenges proposed by the Department of Homeland Security, USA, asking for algorithms that can improve the accuracy of protential threats detection based on screening in airport. Traditional screening plus manual check approach is time consuming and facing ever increasing difficulty as the potential threats are also developing into even advanced level. With the help of up-to-date advanced learning algorithm, tackling this problem not only intrigue us to do more study but also sparking high potential value to the safety of millions of aviation passengers around the globe.
+	\par
+	In our work, we will be focusing on the examine of 17 key regions of a human body, as listed below:
 	\begin{figure}[h]
 		\includegraphics[scale=0.3]{Pic/body_zones.pdf}
 		\caption{17 regions of a human body}
 	\end{figure}
 \section{Data}
-	We will be using data provided by kaggle.com, to be more precise, by Department of Homeland Security. All the data are in the following four formats:
+	We will use data provided by Kaggle, to be more precise, by the Department of Homeland Security, USA. All the data are packed in the following four formats:
 	\begin{itemize}
 		\item{*.ahi} Calibrated object raw data file.
 		\item{*.aps} Projected image angle sequence file.
@@ -70,18 +70,17 @@
 	\end{itemize}
 \section{Approach \& Related Work}
 	\par
-	Ever since \cite{hinton2006fast} proposed BP, Deep learning has achieved a lot in terms of CV, speech recognition, NLP, etc. 
-	Years after that more efficient and robust algorithms like SGD\cite{bottou2010large, lecun2012efficient}, BatchNorm\cite{ioffe2015batch}, Dropout\cite{hinton2012improving, srivastava2014dropout} have also been proposed. It is especially interesting to do projects on Computer Vision when ConvNet\cite{krizhevsky2012imagenet} has shown great potential in terms of accuracy.
+	Ever since \cite{hinton2006fast} proposed BP, Deep learning has achieved a lot in terms of CV, speech recognition, NLP, etc.
+	Years after that, more efficient and robust algorithms like SGD\cite{bottou2010large, lecun2012efficient}, BatchNorm\cite{ioffe2015batch}, Dropout\cite{hinton2012improving, srivastava2014dropout} have also been proposed. It is especially interesting to do projects on Computer Vision when ConvNet\cite{krizhevsky2012imagenet} has shown great potential in terms of accuracy.
 	\par
-	In our project, we will be adopting ConvNet too to do the recognition of dangerous objects. Also, some famous approaches like dropout mentioned above will be tried and tested by us.
+	In our project, we will adopt ConvNet to do the recognition of potential threating objects. Also, well-respected approaches, such as the dropout mentioned above, will be tried and tested.
 \section{Experiments}
-	We will be doing experiments on validation set to tune our parameters. We will compare the loss function of the prediction and the ground truth. The loss function is defined as: \\
+	We will conduct experiments on validation set to tune our hyper-parameters. We will compare the loss function wrt. the prediction and the ground truth. The loss function is defined as follow: \\
 	If there are $N$ images, there will be $17N$,
 	$$ L = -\frac{1}{N}\sum_{i=1}^N{y_i\log(\hat{y}_i) + (1-y_i)log(1-\hat{y}_i)}$$
-	We may also be plotting the function of loss in terms of each parameters.
+	Graphical illustration such as plotting loss vs. each parameters will be carefully selected for the result demonstration.
 \section{Evaluation}
-	The final evaluation will not be limited to validation set, but we will evaluate our system based on the rating algorithm proposed by kaggle.com. That will have to wait until we submit our work.
-
+	Final evaluation will not be limited to validation set, but we will evaluate our system based on the rating algorithm proposed by Kaggle. We shall see how our kernal works after the submission.
 
 
 \bibliographystyle{IEEEtran}
