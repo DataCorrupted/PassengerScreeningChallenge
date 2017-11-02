@@ -42,7 +42,7 @@
 	\IEEEauthorblockA{
 		School of Information Science and Technology \\
 		ShanghaiTech University \\
-		Student ID: xxxxxxxx \\
+		Student ID: *Please Fill This In* \\
 	}
 }
 
@@ -68,12 +68,12 @@
 		\item{*.a3d} Combined image 3D file.
 		\item{*.a3daps} Combined image angle sequence file.
 	\end{itemize}
-\section{Related Work}
-	As deep learning has been successful in object recognition. 
-	TODO What?
-\section{Approach}
-	ConvNet
-	TODO Be specific.
+\section{Approach \& Related Work}
+	\par
+	Ever since \cite{hinton2006fast} proposed BP, Deep learning has achieved a lot in terms of CV, speech recognition, NLP, etc. 
+	Years after that more efficient and robust algorithms like SGD\cite{bottou2010large, lecun2012efficient}, BatchNorm\cite{ioffe2015batch}, Dropout\cite{hinton2012improving, srivastava2014dropout} have also been proposed. It is especially interesting to do projects on Computer Vision when ConvNet\cite{krizhevsky2012imagenet} has shown great potential in terms of accuracy.
+	\par
+	In our project, we will be adopting ConvNet too to do the recognition of dangerous objects. Also, some famous approaches like dropout mentioned above will be tried and tested by us.
 \section{Experiments}
 	We will be doing experiments on validation set to tune our parameters. We will compare the loss function of the prediction and the ground truth. The loss function is defined as: \\
 	If there are $N$ images, there will be $17N$,
@@ -87,5 +87,5 @@
 \bibliographystyle{IEEEtran}
 %% De-comment this line if you have any reference.
 %% And don't forget to change .bib file.
-%\bibliography{proposal}
+\bibliography{proposal}
 \end{document}
