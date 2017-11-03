@@ -10,7 +10,12 @@
 \usepackage{subfloat}
 \usepackage{ulem}
 \usepackage{indentfirst}
+\usepackage{booktabs}
+\usepackage{wrapfig,lipsum,booktabs}
+\usepackage{array}
 \newcommand{\subparagraph}{}
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+
 \begin{document}
 \title{
 	Deep Learning Course Proposal \\
@@ -47,28 +52,34 @@
 	This is a Kaggle challenges proposed by the Department of Homeland Security, USA, asking for algorithms that can improve the accuracy of protential threats detection based on screening in airport. Traditional screening plus manual check approach is time consuming and facing ever increasing difficulty as the potential threats are also developing into even advanced level. With the help of up-to-date advanced learning algorithm, tackling this problem not only intrigue us to do more study but also sparking high potential value to the safety of millions of aviation passengers around the globe.
 	\par
 	In our work, we will be focusing on the examine of 17 key regions of a human body, as listed below:
-%\begin{table}[h]
-%\centering
-%\caption{My caption}
-%\label{my-label}
-%\begin{tabular}{|l|l|l|}
-%\hline
-%Region & Region Name & Region Location Description \\ \hline
-%1 & Right Bicep & Top of the right shoulder to just above the elbow \\ \hline
-%2 & Right Forearm & Elbow to the finger tips \\ \hline
-%3 & Left Bicep & Top of the right shoulder to just above the elbow \\ \hline
-%4 & Left Forearm & Elbow to the finger tips \\ \hline
-%5 & Upper Chest & Front of the body \\ \hline
-% &  &  \\ \hline
-% &  &  \\ \hline
-% &  &  \\ \hline
-% &  &  \\ \hline
-%\end{tabular}
-%\end{table}
-	\begin{figure}[h]
-		\includegraphics[scale=0.35]{Pic/body_zones.png}
-		\caption{17 regions of a human body}
-	\end{figure}
+	% Please add the following required packages to your document preamble:
+	\begin{table}[h]
+	\centering
+	\begin{tabular}{|p{1cm}|p{1.5cm}|p{4.5cm}|}
+	\toprule
+	\multicolumn{1}{|c|}{Region} & Region Name             & Region Location Description                                                                                        \\ \midrule
+	1                            & Right Bicep             & Top of the right shoulder to just above the elbow                                                                  \\ \midrule
+	2                            & Right Forearm           & Elbow to the finger tips                                                                                           \\ \midrule
+	3                            & Left Bicep              & Top of the right shoulder to just above the elbow                                                                  \\ \midrule
+	4                            & Left Forearm            & Elbow to the finger tips                                                                                           \\ \midrule
+	5                            & Upper Chest             & Front of the body                                                                                                  \\ \midrule
+	6                            & Right Rib Cage and Abs  & From the bottom of the pectoral muscle to the top of the waistline, center of the back, rib cage on the right side \\ \midrule
+	7                            & Left Rib Cage and Ab    & From the bottom of the pectoral muscle to the top of the waistline, center of the back, rib cage on the left side  \\ \midrule
+	8                            & Upper Right Hip / Thigh & Waistline to the half of person's thigh and extend to back including half of the right buttocks(pocket region)     \\ \midrule
+	9                            & Groin(Sensitive Area)   & Below the central part of the waist, includes part of the both right and left inner and upper thigh                \\ \midrule
+	10                           & Upper Left Hip / Thigh  & Waist line to the half of person's thigh and extend to back including half of the right buttocks(pocket region)    \\ \midrule
+	11                           & Lower Right Thigh       & Half of the lower right thigh - including the knee                                                                 \\ \midrule
+	12                           & Lower Left Thigh        & Half of the lower left thigh - including the knee                                                                  \\ \midrule
+	13                           & Right Calf              & Below the knee to the lower leg                                                                                    \\ \midrule
+	14                           & Left Calf               & Below the knee to the lower leg                                                                                    \\ \midrule
+	15                           & Right Ankle Bone        & Starts at the end of the calf muscle and includes the foot                                                         \\ \midrule
+	16                           & left Ankle Bone         & Starts at the end of the calf muscle and includes the foot                                                         \\ \midrule
+	17                           & Upper Back              & Upper half of the back(ends at the same point where the pectoral region stops)                                     \\ \bottomrule
+	\end{tabular}%
+	\caption{My caption}
+	\label{my-label}
+	\end{table}
+
 \section{Data}
 	We will use data provided by Kaggle, to be more precise, by the Department of Homeland Security, USA. All the data are packed in the following four formats:
 	\begin{itemize}
