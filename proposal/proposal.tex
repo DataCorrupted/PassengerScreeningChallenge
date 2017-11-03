@@ -76,8 +76,8 @@
 	In our project, we will adopt ConvNet to do the recognition of potential threating objects. Also, well-respected approaches, such as the dropout mentioned above, will be tried and tested.
 \section{Experiments}
 	We will conduct experiments on validation set to tune our hyper-parameters. We will compare the loss function wrt. the prediction and the ground truth. The loss function is defined as follow: \\
-	If there are $N$ images, there will be $17N$,
-	$$ L = -\frac{1}{N}\sum_{i=1}^N{y_i\log(\hat{y}_i) + (1-y_i)log(1-\hat{y}_i)}$$
+	(If there are $N$ images, there will be $\mathcal{N} = 17N$ tests,)
+	$$ L = -\frac{1}{\mathcal{N}}\sum_{i=1}^\mathcal{N}{y_i\log(\hat{y}_i) + (1-y_i)log(1-\hat{y}_i)}$$
 	Graphical illustration such as plotting loss vs. each parameters will be carefully selected for the result demonstration.
 \section{Evaluation}
 	Final evaluation will not be limited to validation set, but we will evaluate our system based on the rating algorithm proposed by Kaggle. We shall see how our kernal works after the submission.
