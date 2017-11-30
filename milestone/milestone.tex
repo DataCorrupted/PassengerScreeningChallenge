@@ -126,8 +126,11 @@ zone_slice_list = [ [ # threat zone 1
 	\subsection{Up Sample}
 		\par For the data set given for now, there are 1871 positive outcomes over 19500 samples, distributed all over 17 zones. This made our work harder because deep learning algorithms will be looking for more positive outcomes to learn. 
 		\par We are up sampling the positive outcomes by duplicate positive outcomes and mirror positive images. Thus we will be having more than 5000 positive images. It's unclear whether this is enough, 
-\section{Deep Neural Tricks}
+\section{Approach}
+	\par Now that we have cropped each image and assigned them to 17 zones. We can tackle each zones once at a time. We will build a network for all zones and then train/test them separately.
 
+\section{Deep Neural Tricks}
+	\par We have been investigating tricks we can use for deep neural so that we can train faster.
 \bibliographystyle{IEEEtran}
 %% De-comment this line if you have any reference.
 %% And don't forget to change .bib file.
