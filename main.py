@@ -16,12 +16,12 @@ from mvcnn import mvcnn
 from sgdr import CosineLR
 
 TEST_MODEL = False          # Creates predictions file
-DEBUG = False               # Loads small dataset and plots augmented images for debugging
+DEBUG = True               # Loads small dataset and plots augmented images for debugging
 VIEW_COUNT_TOTAL = 16       # Total number of views in our scans. APS files have 16.
 VIEW_COUNT_SAMPLE = 16      # Total number of views sampled from the scan. I now use all 16 and this line isn't needed.
 epochs = 25
-state_dict = '/home/dingpeng/src/predictions/14825333/model_50.torch'           # Loads a previous state of the model for picking back up training or making predictions.
-opt_dict = '/home/dingpeng/src/predictions/14825333/opt_50.torch'             # Loads a previous state of the optimizer for picking back up training if it was cut short.
+state_dict = None           # Loads a previous state of the model for picking back up training or making predictions.
+opt_dict = None             # Loads a previous state of the optimizer for picking back up training if it was cut short.
 
 class AverageMeter(object):
     """Computes and stores the average and current value"""
@@ -284,7 +284,7 @@ print("Beginning training...")
 time_str = str(int(time.time()))[2::]
 # Path to save models and predictions
 base_dir = "predictions/{}".format(time_str)
-if not os.path.exists(base_dir):
+if not os.path.exists(base_dir) and not DEBUG:
     os.mkdir(base_dir)
 
 loss_tracker_train = []

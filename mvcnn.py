@@ -20,17 +20,17 @@ class mvcnn(nn.Module):
 
         # 3 convolutional layers of differing kernel size for locating threats of different size.
         self.conv1 = nn.Sequential(
-                        nn.Conv2d(2048, 512, kernel_size=(1,1), stride=1, padding=0, dilation=1, groups=1, bias=True),
+                        nn.Conv2d(2048, 512, kernel_size=(3,3), stride=2, padding=1, dilation=1, groups=1, bias=True),
                         nn.ReLU(),
                         nn.BatchNorm2d(512)
                     )
         self.conv2 = nn.Sequential(
-                        nn.Conv2d(2048, 256, kernel_size=(3,3), stride=2, padding=1, dilation=1, groups=1, bias=True),
+                        nn.Conv2d(2048, 256, kernel_size=(5,5), stride=3, padding=2, dilation=1, groups=1, bias=True),
                         nn.ReLU(),
                         nn.BatchNorm2d(256)
                     )
         self.conv3 = nn.Sequential(
-                        nn.Conv2d(2048, 128, kernel_size=(5,5), stride=3, padding=2, dilation=1, groups=1, bias=True),
+                        nn.Conv2d(2048, 128, kernel_size=(7,7), stride=4, padding=3, dilation=1, groups=1, bias=True),
                         nn.ReLU(),
                         nn.BatchNorm2d(128)
                     )
@@ -38,7 +38,7 @@ class mvcnn(nn.Module):
         self.avgpool1 = nn.AdaptiveAvgPool2d(1)
 
         # Feed each view to LSTM with attention.
-        self.lstm = nn.LSTM(input_size=2048 + 128*4*3 + 256*5*4 + 512*10*8, hidden_size=768, num_layers=1,
+        self.lstm = nn.LSTM(input_size=2048 + 768 + 3072 + 10240, hidden_size=768, num_layers=1,
                             bias=True, batch_first=False, dropout=0, bidirectional=False)
 
         # Attention weights for LSTM.
@@ -66,7 +66,6 @@ class mvcnn(nn.Module):
             attention = self.cnn_attention(avg_pool).unsqueeze(2)
 
             features = torch.mul(features, attention.unsqueeze(3).expand_as(features))
-
             # Go through each threat detection layer.
             features = torch.cat((self.avgpool1(features).view(features.size(0), -1),
                                     self.conv1(features).view(features.size(0), -1), 
