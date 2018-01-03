@@ -57,14 +57,8 @@ def train(train_loader, model, criterion, optimizer, scheduler, epoch):
         batch = batch.cuda(async=True)
         target = target.cuda(async=True)
 
+        # Preloaded resnet-50 requires 3 channel.
         batch = batch.clone().repeat(1, 1, 3, 1, 1)
-
-        if DEBUG and False:
-            print(list(zip(target[0].cpu().tolist(), [x+1 for x in range(17)])))
-            print(list(zip(target[1].cpu().tolist(), [x+1 for x in range(17)])))
-            for j in range(VIEW_COUNT_SAMPLE):
-                plt.imshow(batch.cpu().numpy()[0, j, 0])
-                plt.show()
 
         batch = torch.autograd.Variable(batch)
         target = torch.autograd.Variable(target)
@@ -85,8 +79,8 @@ def train(train_loader, model, criterion, optimizer, scheduler, epoch):
         batch_time.update(time.time() - end)
         end = time.time()
 
-        if i % 10 == 0:
-            print('Epoch: [{0}/{1}][{2}/{3}]\t'
+        if i and i % 10 == 0:
+            print('Epoch - Batch: [{0}/{1}] - [{2}/{3}]\t'
                   'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                   'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
                   'Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(
@@ -106,31 +100,23 @@ def validate(val_loader, model, criterion):
     model.eval()
 
     end = time.time()
-    for i, (input, target) in enumerate(val_loader):
+    for i, (valdat, target) in enumerate(val_loader):
         # measure data loading time
         data_time.update(time.time() - end)
 
-        input = input.cuda(async=True)
+        valdat = valdat.cuda(async=True)
         target = target.cuda(async=True)
 
-        input = input.clone().repeat(1, 1, 3, 1, 1)
-
-        if DEBUG and False:
-            print(list(zip(target[0].cpu().tolist(), [x+1 for x in range(17)])))
-            print(list(zip(target[1].cpu().tolist(), [x+1 for x in range(17)])))
-            for j in range(VIEW_COUNT_SAMPLE):
-                plt.imshow(input.cpu().numpy()[0, j, 0])
-                plt.show()
-
-        input = torch.autograd.Variable(input)
+        valdat = valdat.clone().repeat(1, 1, 3, 1, 1)
+        valdat = torch.autograd.Variable(valdat)
         target = torch.autograd.Variable(target)
 
         # compute output
-        output = model(input)
+        output = model(valdat)
         loss = criterion(output, target)
 
         # measure accuracy and record loss
-        losses.update(loss.data[0], input.size(0))
+        losses.update(loss.data[0], valdat.size(0))
 
         # measure elapsed time
         batch_time.update(time.time() - end)
@@ -142,7 +128,7 @@ def validate(val_loader, model, criterion):
                 'Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(batch_time=batch_time,
                 data_time=data_time, loss=losses))
         
-        del input, target, output, loss
+        del valdat, target, output, loss
 
     loss_tracker_val.append(losses.avg)
 
@@ -152,11 +138,6 @@ def predict(model, name):
     # Imitate a batch
     new_test = np.expand_dims(new_test, 0)
     new_test = torch.Tensor(new_test)
-    if DEBUG and False:
-        for j in range(VIEW_COUNT_SAMPLE):
-            plt.imshow(new_test.numpy()[0, j, 0, :, :])
-            plt.show()
-    # new_test = new_test.repeat(1,1,3,1,1)
     new_test = new_test.clone().repeat(1,1,3,1,1)
     input_var = torch.autograd.Variable(new_test.cuda(), requires_grad=False)
 
@@ -296,12 +277,11 @@ for epoch in range(epochs+1):
     train(data_loader, model, criterion, optimizer, scheduler, epoch)
     validate(valid_data_loader, model, criterion)
 
-    if epoch and epoch % 25 == 0 or DEBUG:
+    if epoch and epoch % 25 == 0 and not DEBUG:
 
         print("Saving Model ...", end = "")
-        if not DEBUG:
-            torch.save(model.state_dict(), "{}/model_{}.torch".format(base_dir, epoch))
-            torch.save(optimizer.state_dict(), "{}/opt_{}.torch".format(base_dir, epoch))
+        torch.save(model.state_dict(), "{}/model_{}.torch".format(base_dir, epoch))
+        torch.save(optimizer.state_dict(), "{}/opt_{}.torch".format(base_dir, epoch))
         print("Model Saved.")
         print("Plotting train/valid loss ...", end = "")
         # Save a plot of the average loss over time
@@ -309,8 +289,7 @@ for epoch in range(epochs+1):
         plt.plot(loss_tracker_train[1:], label="Training loss")
         plt.plot(loss_tracker_val[1:], label="Validation loss")
         plt.legend(loc="upper left")
-        if not DEBUG:
-            plt.savefig("{}/predictions_{}.png".format(base_dir, epoch))
+        plt.savefig("{}/predictions_{}.png".format(base_dir, epoch))
         print("Plot Finished.")
 
         print("Predicting...")
