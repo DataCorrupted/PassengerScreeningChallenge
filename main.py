@@ -6,7 +6,7 @@ import time
 import os
 import matplotlib
 from tqdm import tqdm
-
+import random
 # Add this to save all the plot
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -22,6 +22,7 @@ VIEW_COUNT_SAMPLE = 16      # Total number of views sampled from the scan. I now
 epochs = 25
 state_dict = None           # Loads a previous state of the model for picking back up training or making predictions.
 opt_dict = None             # Loads a previous state of the optimizer for picking back up training if it was cut short.
+TEST_CNT = 1024 
 
 class AverageMeter(object):
     """Computes and stores the average and current value"""
@@ -42,6 +43,7 @@ class AverageMeter(object):
         self.avg = self.sum / self.count
 
 def train(train_loader, model, criterion, optimizer, scheduler, epoch):
+    global loss_tracker_train
     batch_time = AverageMeter()
     data_time = AverageMeter()
     losses = AverageMeter()
@@ -93,6 +95,7 @@ def train(train_loader, model, criterion, optimizer, scheduler, epoch):
     loss_tracker_train.append(losses.avg)
 
 def validate(val_loader, model, criterion):
+    global loss_tracker_val
     batch_time = AverageMeter()
     data_time = AverageMeter()
     losses = AverageMeter()
@@ -209,7 +212,9 @@ for line in train_file:
 # If debug, only take 16 images for training.
 if DEBUG:
     name_to_vector = {k: name_to_vector[k] for k in sorted(name_to_vector.keys())[:16]}
+    TEST_CNT = 10
 name_to_vector = list(name_to_vector.items())
+random.shuffle(name_to_vector)
 print("Loading Images...")
 
 # Convert to raw training input and output
@@ -230,12 +235,10 @@ print("Images Loading Finished.")
 
 
 print("Splitting into train/validation sets...", end='')
-# Too few valid! add more later.
-training_split = len(training_input) - 5
-training_input, valid_input = training_input[0:training_split], training_input[training_split:]
-training_output, valid_output = training_output[0:training_split], training_output[training_split:]
+training_input, valid_input = training_input[0:TEST_CNT], training_input[TEST_CNT:]
+training_output, valid_output = training_output[0:TEST_CNT], training_output[TEST_CNT:]
 print("Split Finished.")
-print("There are {} training images with size {}".format(training_split, training_input.shape))
+print("There are {} training images with size {}".format(TEST_CNT, training_input.shape))
 print("There are {} training images with size {}".format(5, valid_input.shape))
 
 print("Creating DataLoaders...")
@@ -245,9 +248,9 @@ valid_input = torch.Tensor(valid_input)
 valid_output = torch.Tensor(valid_output)
 
 dataset = TransformDataset(training_input, training_output, names, train=True)
-data_loader = torch.utils.data.DataLoader(dataset, batch_size=2, shuffle=True, sampler=None, batch_sampler=None, num_workers=8, pin_memory=True, drop_last=True)
+data_loader = torch.utils.data.DataLoader(dataset, batch_size=2, num_workers=8, pin_memory=True)
 valid_dataset = TransformDataset(valid_input, valid_output, names, train=False)
-valid_data_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=2, shuffle=False, sampler=None, batch_sampler=None, num_workers=0, pin_memory=True, drop_last=False)
+valid_data_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=8, num_workers=0, pin_memory=True)
 
 criterion = torch.nn.BCEWithLogitsLoss().cuda()
 optimizer = torch.optim.SGD(model.parameters(), lr=1e-2, momentum=0.9, dampening=0, weight_decay=1e-4, nesterov=True)
@@ -273,7 +276,7 @@ loss_tracker_val = []
 best_loss = 0.001 # Ideal.
 this_loss = 0xffff
 
-for epoch in range(epochs+1):
+for epoch in range(epochs):
     train(data_loader, model, criterion, optimizer, scheduler, epoch)
     validate(valid_data_loader, model, criterion)
 
