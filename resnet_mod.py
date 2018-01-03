@@ -124,7 +124,6 @@ class ResNet(nn.Module):
             elif isinstance(m, nn.BatchNorm2d):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
-
         self.load_state_dict(model_zoo.load_url(model_urls['resnet50']))
         del self.fc, self.avgpool
 
@@ -159,11 +158,6 @@ class ResNet(nn.Module):
 
         return nn.Sequential(*layers)
 
-    def _upsample_and_add(self, top, lat):
-        _, _, h, w = lat.size()
-        return F.upsample(top, size=(h,w), mode="bilinear") + lat
-
-
     def forward(self, x):
         x = self.conv1(x)
         x = self.bn1(x)
@@ -174,19 +168,6 @@ class ResNet(nn.Module):
         x = self.layer2(x)
         x = self.layer3(x)
         raw4 = self.layer4(x)
-        """
-        raw5 = self.layer5(raw4)
-        raw6 = self.layer6(raw5)
-
-        # Top-down
-        f6 = self.lat6(raw6)
-
-        f5 = self._upsample_and_add(f6, self.lat5(raw5))
-        f5 = self.topdown6_5(f5)
-
-        f4 = self._upsample_and_add(f5, self.lat4(raw4))
-        f4 = self.topdown5_4(f4)
-        """
 
         return raw4
 
