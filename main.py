@@ -16,7 +16,7 @@ from mvcnn import mvcnn
 from sgdr import CosineLR
 
 TEST_MODEL = False          # Creates predictions file
-DEBUG = True               # Loads small dataset and plots augmented images for debugging
+DEBUG = True                # L`oads small dataset and plots augmented images for debugging
 VIEW_COUNT_TOTAL = 16       # Total number of views in our scans. APS files have 16.
 VIEW_COUNT_SAMPLE = 16      # Total number of views sampled from the scan. I now use all 16 and this line isn't needed.
 epochs = 25
@@ -43,7 +43,6 @@ class AverageMeter(object):
         self.avg = self.sum / self.count
 
 def train(train_loader, model, criterion, optimizer, scheduler, epoch):
-    global loss_tracker_train
     batch_time = AverageMeter()
     data_time = AverageMeter()
     losses = AverageMeter()
@@ -95,7 +94,6 @@ def train(train_loader, model, criterion, optimizer, scheduler, epoch):
     loss_tracker_train.append(losses.avg)
 
 def validate(val_loader, model, criterion):
-    global loss_tracker_val
     batch_time = AverageMeter()
     data_time = AverageMeter()
     losses = AverageMeter()
@@ -211,8 +209,8 @@ for line in train_file:
 
 # If debug, only take 16 images for training.
 if DEBUG:
-    name_to_vector = {k: name_to_vector[k] for k in sorted(name_to_vector.keys())[:16]}
-    TEST_CNT = 10
+    name_to_vector = {k: name_to_vector[k] for k in sorted(name_to_vector.keys())[:32]}
+    TEST_CNT = 30
 name_to_vector = list(name_to_vector.items())
 random.shuffle(name_to_vector)
 print("Loading Images...")
@@ -248,9 +246,9 @@ valid_input = torch.Tensor(valid_input)
 valid_output = torch.Tensor(valid_output)
 
 dataset = TransformDataset(training_input, training_output, names, train=True)
-data_loader = torch.utils.data.DataLoader(dataset, batch_size=2, num_workers=8, pin_memory=True)
+data_loader = torch.utils.data.DataLoader(dataset, batch_size=2, shuffle=False, sampler=None, batch_sampler=None, num_workers=8, pin_memory=True, drop_last=True)
 valid_dataset = TransformDataset(valid_input, valid_output, names, train=False)
-valid_data_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=8, num_workers=0, pin_memory=True)
+valid_data_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=2, shuffle=False, sampler=None, batch_sampler=None, num_workers=0, pin_memory=True, drop_last=False)
 
 criterion = torch.nn.BCEWithLogitsLoss().cuda()
 optimizer = torch.optim.SGD(model.parameters(), lr=1e-2, momentum=0.9, dampening=0, weight_decay=1e-4, nesterov=True)
@@ -273,10 +271,10 @@ if not os.path.exists(base_dir) and not DEBUG:
 
 loss_tracker_train = []
 loss_tracker_val = []
-best_loss = 0.001 # Ideal.
+best_loss = 0.01 # Ideal.
 this_loss = 0xffff
 
-for epoch in range(epochs):
+for epoch in range(epochs+1):
     train(data_loader, model, criterion, optimizer, scheduler, epoch)
     validate(valid_data_loader, model, criterion)
 
