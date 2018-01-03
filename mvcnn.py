@@ -43,7 +43,7 @@ class mvcnn(nn.Module):
 
         # Attention weights for LSTM.
         self.attention = nn.Linear(768, 16)
-        self.softmax = nn.Softmax(dim=1)
+        self.softmax = nn.Softmax(dim = 1)
 
         # Experimental CNN attention layer (accidentally left this in when I made my final submissions...
         # haven't been able to tell if it hurts or helps.)
@@ -81,7 +81,6 @@ class mvcnn(nn.Module):
         attn_weights = self.softmax(
             self.attention(outputs[-1])
         )
-
         # Apply attention to the outputs and combine into a single output.
         outputs = outputs.permute(1, 0, 2)
         attn_weights = torch.unsqueeze(attn_weights, 1)
