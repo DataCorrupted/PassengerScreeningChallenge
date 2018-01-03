@@ -36,9 +36,8 @@ def test_model(model, base_dir=None, epoch=0):
         os.mkdir(base_dir)
     outfile = open('{}/predictions_{}_{}.csv'.format(base_dir, time_str, epoch), 'w+')
     print('Id,Probability', file=outfile)
-    test_names = set([filename.split('.')[0] for filename in os.listdir('aps/')])
+    test_names = [filename[:-4] for filename in os.listdir('aps/')]
     for name in tqdm(test_names):
-        #print(name)
         for bodypart, prob in enumerate(predict(model, name)):
             print("{}_Zone{},{}".format(name, bodypart + 1, prob), file=outfile)
 
