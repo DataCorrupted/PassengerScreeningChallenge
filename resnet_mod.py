@@ -1,8 +1,3 @@
-# ResNet from the Pytorch's torchvision library modded for the Passenger Screening Challenge.
-# Stride at first conv layer and first pooling layer increased from 2 to 3.
-# Deletes final fully connected and average pooling layer.
-# Experimented with Feature Pyramid Networks but didn't use this in the final solution.
-
 import torch.nn as nn
 import math
 import torch.utils.model_zoo as model_zoo
@@ -23,8 +18,21 @@ model_urls = {
 }
 
 
+__all__ = ['ResNet', 'resnet18', 'resnet34', 'resnet50', 'resnet101',
+           'resnet152']
+
+
+model_urls = {
+    'resnet18': 'https://download.pytorch.org/models/resnet18-5c106cde.pth',
+    'resnet34': 'https://download.pytorch.org/models/resnet34-333f7ec4.pth',
+    'resnet50': 'https://download.pytorch.org/models/resnet50-19c8e357.pth',
+    'resnet101': 'https://download.pytorch.org/models/resnet101-5d3b4d8f.pth',
+    'resnet152': 'https://download.pytorch.org/models/resnet152-b121ed2d.pth',
+}
+
+
 def conv3x3(in_planes, out_planes, stride=1):
-    "3x3 convolution with padding"
+    """3x3 convolution with padding"""
     return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
                      padding=1, bias=False)
 
@@ -59,7 +67,6 @@ class BasicBlock(nn.Module):
         out = self.relu(out)
 
         return out
-
 
 class Bottleneck(nn.Module):
     expansion = 4
@@ -100,6 +107,7 @@ class Bottleneck(nn.Module):
         return out
 
 
+
 class ResNet(nn.Module):
 
     def __init__(self, block, layers, num_classes=1000):
@@ -124,22 +132,9 @@ class ResNet(nn.Module):
             elif isinstance(m, nn.BatchNorm2d):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
+
         self.load_state_dict(model_zoo.load_url(model_urls['resnet50']))
         del self.fc, self.avgpool
-
-        """
-        # Modifications for FPN start here
-        self.layer5 = self._make_layer(block, 512, layers[4], stride=2)
-        self.layer6 = self._make_layer(block, 512, layers[5], stride=2)
-
-        self.lat6 = nn.Conv2d(512*block.expansion, 512, kernel_size=1, stride=1, padding=0)
-        self.lat5 = nn.Conv2d(512*block.expansion, 512, kernel_size=1, stride=1, padding=0)
-        self.lat4 = nn.Conv2d(512*block.expansion, 512, kernel_size=1, stride=1, padding=0)
-
-        self.topdown6_5 = nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1)
-        self.topdown5_4 = nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1)
-        """
-
 
     def _make_layer(self, block, planes, blocks, stride=1):
         downsample = None
@@ -167,17 +162,17 @@ class ResNet(nn.Module):
         x = self.layer1(x)
         x = self.layer2(x)
         x = self.layer3(x)
-        raw4 = self.layer4(x)
+        x = self.layer4(x)
 
-        return raw4
-
-
+        return x
 def resnet18(pretrained=False, **kwargs):
     """Constructs a ResNet-18 model.
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
     model = ResNet(BasicBlock, [2, 2, 2, 2], **kwargs)
+    if pretrained:
+        model.load_state_dict(model_zoo.load_url(model_urls['resnet18']))
     return model
 
 
@@ -187,6 +182,8 @@ def resnet34(pretrained=False, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
     model = ResNet(BasicBlock, [3, 4, 6, 3], **kwargs)
+    if pretrained:
+        model.load_state_dict(model_zoo.load_url(model_urls['resnet34']))
     return model
 
 
@@ -196,6 +193,9 @@ def resnet50(pretrained=False, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
     model = ResNet(Bottleneck, [3, 4, 6, 3], **kwargs)
+    #if pretrained:
+    #    model.load_state_dict(model_zoo.load_url(model_urls['resnet50']))
+    #del model.fc, model.avgpool
     return model
 
 
@@ -205,6 +205,8 @@ def resnet101(pretrained=False, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
     model = ResNet(Bottleneck, [3, 4, 23, 3], **kwargs)
+    if pretrained:
+        model.load_state_dict(model_zoo.load_url(model_urls['resnet101']))
     return model
 
 
