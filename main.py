@@ -162,7 +162,8 @@ sample_cnt = len(name_to_vector)
 print("{} samples found.".format(sample_cnt))
 
 names = [None] * sample_cnt
-training_input = np.empty((sample_cnt, VIEW_COUNT_TOTAL, 1, 660  + 1, 512  + 0), dtype=np.float32)
+# 16(images for one person) x 1(channel)
+training_input = np.empty((sample_cnt, 16, 1, 660  + 1, 512  + 0), dtype=np.float32)
 training_output = np.empty((sample_cnt, 17))
 for i in tqdm(range(sample_cnt)):
     name, is_danger = name_to_vector[i]

@@ -43,7 +43,7 @@ class mvcnn(nn.Module):
 
         # Attention weights for LSTM.
         self.attention = nn.Linear(768, 16)
-        self.softmax = nn.Softmax()
+        self.softmax = nn.Softmax(dim=1)
 
         # Experimental CNN attention layer (accidentally left this in when I made my final submissions...
         # haven't been able to tell if it hurts or helps.)
