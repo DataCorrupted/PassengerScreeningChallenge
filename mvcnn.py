@@ -1,7 +1,7 @@
 import types
 import torch
 import torch.nn as nn
-from resnet_mod import resnet50, resnet18, resnet101
+from resnet_mod import resnet50
 import torch.nn.functional as F
 
 class mvcnn(nn.Module):

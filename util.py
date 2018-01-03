@@ -140,6 +140,13 @@ def get_x_views(filename, x=4):
     views = data.shape[2]
     return [np.flipud(data[:, :, i].transpose()) for i in range(0, views, views // x)]
 
+def name_to_array(name, path):
+    # Given a name and path, return an array of images.
+    array = np.array(get_x_views("{}/{}.{}".format(path, name, "aps"), x=16))
+    array = np.expand_dims(array, 1)
+    array = np.pad(array, ((0,0), (0,0), (0, 1), (0, 0)), mode="constant", constant_values=0)
+    
+    return array
 
 class TransformDataset(torch.utils.data.Dataset):
     # Same as a normal Dataset but randomly augments the data. 

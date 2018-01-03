@@ -1,27 +1,25 @@
 import torch
 import torchvision
-import torchsample.transforms
 import numpy as np
 import time
 import os
 import matplotlib
-from tqdm import tqdm
-import random
 # Add this to save all the plot
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from util import get_x_views, TransformDataset
-from skimage import io
+
+# Used to show how much image is loaded.
+from tqdm import tqdm
+# Shuffel data.
+import random
+from util import name_to_array, TransformDataset
 from mvcnn import mvcnn
 from sgdr import CosineLR
 
-TEST_MODEL = False          # Creates predictions file
-DEBUG = True                # L`oads small dataset and plots augmented images for debugging
-VIEW_COUNT_TOTAL = 16       # Total number of views in our scans. APS files have 16.
-VIEW_COUNT_SAMPLE = 16      # Total number of views sampled from the scan. I now use all 16 and this line isn't needed.
-epochs = 25
-state_dict = None           # Loads a previous state of the model for picking back up training or making predictions.
-opt_dict = None             # Loads a previous state of the optimizer for picking back up training if it was cut short.
+DEBUG = True                # Loads small dataset and plots augmented images for debugging
+epochs = 1 #25
+state_dict = None           # Load previous model to continue training
+opt_dict = None             # Load previous model to continue training
 TEST_CNT = 1024 
 
 class AverageMeter(object):
@@ -133,63 +131,6 @@ def validate(val_loader, model, criterion):
 
     loss_tracker_val.append(losses.avg)
 
-def predict(model, name):
-    new_test = name_to_array(name, "test")
-
-    # Imitate a batch
-    new_test = np.expand_dims(new_test, 0)
-    new_test = torch.Tensor(new_test)
-    new_test = new_test.clone().repeat(1,1,3,1,1)
-    input_var = torch.autograd.Variable(new_test.cuda(), requires_grad=False)
-
-    accur = 0
-
-    # Run through network
-    if type(model) != list:
-        model = [model]
-    for m in model:
-        output = torch.nn.Sigmoid()(m(input_var))
-        output = output.data.cpu().numpy()[0]
-        accur += output
-
-    return accur / len(model)
-
-def test_model(model, base_dir=None, epoch=0):
-    time_str = str(int(time.time()))[2:]
-    if base_dir == None:
-        base_dir = "predictions/{}".format(time_str)
-        os.mkdir(base_dir)
-    outfile = open('{}/predictions_{}_{}.csv'.format(base_dir, time_str, epoch), 'w+')
-    print('Id,Probability', file=outfile)
-    test_names = set([filename.split('.')[0] for filename in os.listdir('test/')])
-    for name in test_names:
-        print(name)
-        for bodypart, prob in enumerate(predict(model, name)):
-            print("{}_Zone{},{}".format(name, bodypart + 1, prob), file=outfile)
-
-def name_to_array(name, path):
-    # Given a name and path, return an array of images.
-    array = np.array(get_x_views("{}/{}.{}".format(path, name, "aps"), x=VIEW_COUNT_TOTAL))
-    array = np.expand_dims(array, 1)
-    array = np.pad(array, ((0,0), (0,0), (0, 1), (0, 0)), mode="constant", constant_values=0)
-    
-    return array
-
-
-if TEST_MODEL:
-    print("Testing model only")
-    models = []
-    if type(state_dict) != list:
-        state_dict = [state_dict]
-    for name in state_dict:
-        model = mvcnn(17, pretrained=True).cuda()
-        model.load_state_dict(torch.load(name))
-        model.eval()
-        models.append(model)
-        print("Added {}".format(name))
-    test_model(models)
-    exit()
-
 print("Initializing model")
 model = mvcnn(17, pretrained=True).cuda()
 
@@ -246,9 +187,9 @@ valid_input = torch.Tensor(valid_input)
 valid_output = torch.Tensor(valid_output)
 
 dataset = TransformDataset(training_input, training_output, names, train=True)
-data_loader = torch.utils.data.DataLoader(dataset, batch_size=2, shuffle=False, sampler=None, batch_sampler=None, num_workers=8, pin_memory=True, drop_last=True)
+data_loader = torch.utils.data.DataLoader(dataset, batch_size=2, num_workers=8, pin_memory=True, drop_last=True)
 valid_dataset = TransformDataset(valid_input, valid_output, names, train=False)
-valid_data_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=2, shuffle=False, sampler=None, batch_sampler=None, num_workers=0, pin_memory=True, drop_last=False)
+valid_data_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=2, num_workers=0, pin_memory=True, drop_last=False)
 
 criterion = torch.nn.BCEWithLogitsLoss().cuda()
 optimizer = torch.optim.SGD(model.parameters(), lr=1e-2, momentum=0.9, dampening=0, weight_decay=1e-4, nesterov=True)
@@ -266,41 +207,37 @@ print("Beginning training...")
 time_str = str(int(time.time()))[2::]
 # Path to save models and predictions
 base_dir = "predictions/{}".format(time_str)
-if not os.path.exists(base_dir) and not DEBUG:
+if not os.path.exists(base_dir):
     os.mkdir(base_dir)
 
 loss_tracker_train = []
 loss_tracker_val = []
-best_loss = 0.01 # Ideal.
+ideal_loss = 0.01 # Ideal.
+best_loss = 0xffff
 this_loss = 0xffff
 
 for epoch in range(epochs+1):
     train(data_loader, model, criterion, optimizer, scheduler, epoch)
     validate(valid_data_loader, model, criterion)
 
-    if epoch and epoch % 25 == 0 and not DEBUG:
-
-        print("Saving Model ...", end = "")
-        torch.save(model.state_dict(), "{}/model_{}.torch".format(base_dir, epoch))
-        torch.save(optimizer.state_dict(), "{}/opt_{}.torch".format(base_dir, epoch))
-        print("Model Saved.")
-        print("Plotting train/valid loss ...", end = "")
-        # Save a plot of the average loss over time
-        plt.clf()
-        plt.plot(loss_tracker_train[1:], label="Training loss")
-        plt.plot(loss_tracker_val[1:], label="Validation loss")
-        plt.legend(loc="upper left")
-        plt.savefig("{}/predictions_{}.png".format(base_dir, epoch))
-        print("Plot Finished.")
-
-        print("Predicting...")
-        test_model(model, base_dir, epoch)
-
     this_loss = loss_tracker_val[-1]
     print("This loss: {}".format(this_loss))
     print("Best loss: {}".format(best_loss))
-
-    if this_loss < best_loss + 0.0025:
+    if this_loss < best_loss:
+        best_loss = this_loss
+    if this_loss < ideal_loss + 0.0025:
         print("Found better model with {} loss (old loss was {})".format(this_loss, best_loss))
-        best_loss = min(this_loss, best_loss)
         torch.save(model.state_dict(), "{}/best_model_{}_{:.4f}.torch".format(base_dir, epoch, this_loss))
+
+print("Saving Model ... ", end = "")
+torch.save(model.state_dict(), "{}/model_{}.torch".format(base_dir, epoch))
+torch.save(optimizer.state_dict(), "{}/opt_{}.torch".format(base_dir, epoch))
+print("Model Saved.")
+print("Plotting train/valid loss ... ", end = "")
+# Save a plot of the average loss over time
+plt.clf()
+plt.plot(loss_tracker_train[1:], label="Training loss")
+plt.plot(loss_tracker_val[1:], label="Validation loss")
+plt.legend(loc="upper left")
+plt.savefig("{}/predictions_{}.png".format(base_dir, epoch))
+print("Plot Finished.")
