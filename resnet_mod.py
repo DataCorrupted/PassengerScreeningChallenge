@@ -1,13 +1,6 @@
-# ResNet from the Pytorch's torchvision library modded for the Passenger Screening Challenge.
-# Stride at first conv layer and first pooling layer increased from 2 to 3.
-# Deletes final fully connected and average pooling layer.
-# Experimented with Feature Pyramid Networks but didn't use this in the final solution.
-
 import torch.nn as nn
 import math
 import torch.utils.model_zoo as model_zoo
-import torch.nn.functional as F
-import torch
 
 
 __all__ = ['ResNet', 'resnet18', 'resnet34', 'resnet50', 'resnet101',
@@ -114,9 +107,8 @@ class ResNet(nn.Module):
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2)
         self.layer3 = self._make_layer(block, 256, layers[2], stride=2)
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
-        self.avgpool = nn.AdaptiveAvgPool2d(1)
+        self.avgpool = nn.AvgPool2d(7, stride=1)
         self.fc = nn.Linear(512 * block.expansion, num_classes)
-
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
@@ -124,22 +116,6 @@ class ResNet(nn.Module):
             elif isinstance(m, nn.BatchNorm2d):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
-        self.load_state_dict(model_zoo.load_url(model_urls['resnet50']))
-        del self.fc, self.avgpool
-
-        """
-        # Modifications for FPN start here
-        self.layer5 = self._make_layer(block, 512, layers[4], stride=2)
-        self.layer6 = self._make_layer(block, 512, layers[5], stride=2)
-
-        self.lat6 = nn.Conv2d(512*block.expansion, 512, kernel_size=1, stride=1, padding=0)
-        self.lat5 = nn.Conv2d(512*block.expansion, 512, kernel_size=1, stride=1, padding=0)
-        self.lat4 = nn.Conv2d(512*block.expansion, 512, kernel_size=1, stride=1, padding=0)
-
-        self.topdown6_5 = nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1)
-        self.topdown5_4 = nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1)
-        """
-
 
     def _make_layer(self, block, planes, blocks, stride=1):
         downsample = None
@@ -167,9 +143,10 @@ class ResNet(nn.Module):
         x = self.layer1(x)
         x = self.layer2(x)
         x = self.layer3(x)
-        raw4 = self.layer4(x)
+        x = self.layer4(x)
 
-        return raw4
+        # Here I deleted fc and average since we don't need them.
+        return x
 
 
 def resnet18(pretrained=False, **kwargs):
@@ -178,6 +155,9 @@ def resnet18(pretrained=False, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
     model = ResNet(BasicBlock, [2, 2, 2, 2], **kwargs)
+    if pretrained:
+        model.load_state_dict(model_zoo.load_url(model_urls['resnet18']))
+    del model.fc, model.avgpool
     return model
 
 
@@ -187,6 +167,9 @@ def resnet34(pretrained=False, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
     model = ResNet(BasicBlock, [3, 4, 6, 3], **kwargs)
+    if pretrained:
+        model.load_state_dict(model_zoo.load_url(model_urls['resnet34']))
+    del model.fc, model.avgpool
     return model
 
 
@@ -196,6 +179,9 @@ def resnet50(pretrained=False, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
     model = ResNet(Bottleneck, [3, 4, 6, 3], **kwargs)
+    if pretrained:
+        model.load_state_dict(model_zoo.load_url(model_urls['resnet50']))
+    del model.fc, model.avgpool
     return model
 
 
@@ -205,6 +191,9 @@ def resnet101(pretrained=False, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
     model = ResNet(Bottleneck, [3, 4, 23, 3], **kwargs)
+    if pretrained:
+        model.load_state_dict(model_zoo.load_url(model_urls['resnet101']))
+    del model.fc, model.avgpool
     return model
 
 
@@ -216,4 +205,5 @@ def resnet152(pretrained=False, **kwargs):
     model = ResNet(Bottleneck, [3, 8, 36, 3], **kwargs)
     if pretrained:
         model.load_state_dict(model_zoo.load_url(model_urls['resnet152']))
+    del model.fc, model.avgpool
     return model
