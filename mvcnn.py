@@ -23,11 +23,6 @@ class mvcnn(nn.Module):
                         nn.ReLU(),
                         nn.BatchNorm2d(1024))
 
-        # Experimental CNN attention layer (accidentally left this in when I made my final submissions...
-        # haven't been able to tell if it hurts or helps.)
-        self.cnn_attention = nn.Linear(2048, 2048)
-
-        # LSTM results are fed to a final linear layer.
         self.dropout = nn.Dropout(p=0.2)
         self.h = nn.Sequential(
                     nn.Linear(20480, 768),
