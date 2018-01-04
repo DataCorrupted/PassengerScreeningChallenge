@@ -1,7 +1,7 @@
 import types
 import torch
 import torch.nn as nn
-from resnet_mod import resnet50
+from resnet import resnet50
 import torch.nn.functional as F
 
 class mvcnn(nn.Module):
@@ -60,11 +60,9 @@ class mvcnn(nn.Module):
         for i in range(x.size()[1]):
             view = x[:, i]
             features = self.cnn(view)
-
             # CNN attention
             avg_pool = self.avgpool1(features).view(features.size(0), -1)
             attention = self.cnn_attention(avg_pool).unsqueeze(2)
-
             features = torch.mul(features, attention.unsqueeze(3).expand_as(features))
 
             # Go through each threat detection layer.
