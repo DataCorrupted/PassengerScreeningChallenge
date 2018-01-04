@@ -16,8 +16,8 @@ from util import name_to_array, TransformDataset
 from mvcnn import mvcnn
 from sgdr import CosineLR
 
-DEBUG = True                # Loads small dataset and plots augmented images for debugging
-epochs = 1 #25
+DEBUG = False                # Loads small dataset and plots augmented images for debugging
+epochs = 50
 state_dict = None           # Load previous model to continue training
 opt_dict = None             # Load previous model to continue training
 TEST_CNT = 1024 
@@ -42,7 +42,6 @@ class AverageMeter(object):
 
 def train(train_loader, model, criterion, optimizer, scheduler, epoch):
     batch_time = AverageMeter()
-    data_time = AverageMeter()
     losses = AverageMeter()
 
     # switch to train mode
@@ -50,8 +49,6 @@ def train(train_loader, model, criterion, optimizer, scheduler, epoch):
     
     end = time.time()
     for i, (batch, target) in enumerate(train_loader):
-        # measure data loading time
-        data_time.update(time.time() - end)
 
         batch = batch.cuda(async=True)
         target = target.cuda(async=True)
@@ -77,14 +74,11 @@ def train(train_loader, model, criterion, optimizer, scheduler, epoch):
         # measure elapsed time
         batch_time.update(time.time() - end)
         end = time.time()
-
-        if i and i % 1 == 0:
-            print('Epoch - Batch: [{0}/{1}] - [{2}/{3}]\t'
+        if (i and i % 64 == 0) or DEBUG:
+            print('Epoch/Batch: [{0}/{1}]/[{2}/{3}]\t'
                   'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-                  'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
                   'Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(
-                   epoch, epochs, i, len(train_loader), batch_time=batch_time,
-                   data_time=data_time, loss=losses))
+                   epoch, epochs, i, len(train_loader), batch_time=batch_time, loss=losses))
 
         del batch, target, output, loss
 
@@ -93,15 +87,12 @@ def train(train_loader, model, criterion, optimizer, scheduler, epoch):
 
 def validate(val_loader, model, criterion):
     batch_time = AverageMeter()
-    data_time = AverageMeter()
     losses = AverageMeter()
 
     model.eval()
 
     end = time.time()
     for i, (valdat, target) in enumerate(val_loader):
-        # measure data loading time
-        data_time.update(time.time() - end)
 
         valdat = valdat.cuda(async=True)
         target = target.cuda(async=True)
@@ -120,14 +111,11 @@ def validate(val_loader, model, criterion):
         # measure elapsed time
         batch_time.update(time.time() - end)
         end = time.time()
-
-        print('VALIDATION:')
-        print('Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-                'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
-                'Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(batch_time=batch_time,
-                data_time=data_time, loss=losses))
         
         del valdat, target, output, loss
+
+    print('\nVALIDATION \t Time(avg): {batch_time.avg:.3f}\t'
+            'Loss(avg): {loss.avg:.4f}'.format(batch_time=batch_time, loss=losses))
 
     loss_tracker_val.append(losses.avg)
 
@@ -179,7 +167,7 @@ training_input, valid_input = training_input[0:TEST_CNT], training_input[TEST_CN
 training_output, valid_output = training_output[0:TEST_CNT], training_output[TEST_CNT:]
 print("Split Finished.")
 print("There are {} training images with size {}".format(TEST_CNT, training_input.shape))
-print("There are {} training images with size {}".format(5, valid_input.shape))
+print("There are {} training images with size {}".format(sample_cnt - TEST_CNT, valid_input.shape))
 
 print("Creating DataLoaders...")
 training_input = torch.Tensor(training_input)
@@ -207,7 +195,10 @@ torch.backends.cudnn.benchmark = False
 print("Beginning training...")
 time_str = str(int(time.time()))[2::]
 # Path to save models and predictions
-base_dir = "predictions/{}".format(time_str)
+if DEBUG:
+    base_dir = "debug/{}".format(time_str)
+else:
+    base_dir = "models/{}".format(time_str)
 if not os.path.exists(base_dir):
     os.mkdir(base_dir)
 
@@ -217,15 +208,15 @@ ideal_loss = 0.01 # Ideal.
 best_loss = 0xffff
 this_loss = 0xffff
 
-for epoch in range(epochs+1):
+for epoch in range(epochs):
     train(data_loader, model, criterion, optimizer, scheduler, epoch)
     validate(valid_data_loader, model, criterion)
 
     this_loss = loss_tracker_val[-1]
-    print("This loss: {}".format(this_loss))
-    print("Best loss: {}".format(best_loss))
     if this_loss < best_loss:
         best_loss = this_loss
+    print("This loss: {}".format(this_loss))
+    print("Best loss: {}".format(best_loss), end = '\n\n')
     if this_loss < ideal_loss + 0.0025:
         print("Found better model with {} loss (old loss was {})".format(this_loss, best_loss))
         torch.save(model.state_dict(), "{}/best_model_{}_{:.4f}.torch".format(base_dir, epoch, this_loss))

@@ -1,8 +1,6 @@
 import torch.nn as nn
 import math
 import torch.utils.model_zoo as model_zoo
-import torch.nn.functional as F
-import torch
 
 
 __all__ = ['ResNet', 'resnet18', 'resnet34', 'resnet50', 'resnet101',
@@ -122,9 +120,8 @@ class ResNet(nn.Module):
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2)
         self.layer3 = self._make_layer(block, 256, layers[2], stride=2)
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
-        self.avgpool = nn.AdaptiveAvgPool2d(1)
+        self.avgpool = nn.AvgPool2d(7, stride=1)
         self.fc = nn.Linear(512 * block.expansion, num_classes)
-
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
@@ -132,9 +129,6 @@ class ResNet(nn.Module):
             elif isinstance(m, nn.BatchNorm2d):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
-
-        self.load_state_dict(model_zoo.load_url(model_urls['resnet50']))
-        del self.fc, self.avgpool
 
     def _make_layer(self, block, planes, blocks, stride=1):
         downsample = None
@@ -163,8 +157,9 @@ class ResNet(nn.Module):
         x = self.layer2(x)
         x = self.layer3(x)
         x = self.layer4(x)
-
+        # Here I deleted fc and average since we don't need them.
         return x
+
 def resnet18(pretrained=False, **kwargs):
     """Constructs a ResNet-18 model.
     Args:
@@ -173,6 +168,7 @@ def resnet18(pretrained=False, **kwargs):
     model = ResNet(BasicBlock, [2, 2, 2, 2], **kwargs)
     if pretrained:
         model.load_state_dict(model_zoo.load_url(model_urls['resnet18']))
+    del model.fc, model.avgpool
     return model
 
 
@@ -184,6 +180,7 @@ def resnet34(pretrained=False, **kwargs):
     model = ResNet(BasicBlock, [3, 4, 6, 3], **kwargs)
     if pretrained:
         model.load_state_dict(model_zoo.load_url(model_urls['resnet34']))
+    del model.fc, model.avgpool
     return model
 
 
@@ -193,9 +190,9 @@ def resnet50(pretrained=False, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
     model = ResNet(Bottleneck, [3, 4, 6, 3], **kwargs)
-    #if pretrained:
-    #    model.load_state_dict(model_zoo.load_url(model_urls['resnet50']))
-    #del model.fc, model.avgpool
+    if pretrained:
+        model.load_state_dict(model_zoo.load_url(model_urls['resnet50']))
+    del model.fc, model.avgpool
     return model
 
 
@@ -207,6 +204,7 @@ def resnet101(pretrained=False, **kwargs):
     model = ResNet(Bottleneck, [3, 4, 23, 3], **kwargs)
     if pretrained:
         model.load_state_dict(model_zoo.load_url(model_urls['resnet101']))
+    del model.fc, model.avgpool
     return model
 
 
@@ -218,4 +216,5 @@ def resnet152(pretrained=False, **kwargs):
     model = ResNet(Bottleneck, [3, 8, 36, 3], **kwargs)
     if pretrained:
         model.load_state_dict(model_zoo.load_url(model_urls['resnet152']))
+    del model.fc, model.avgpool
     return model
