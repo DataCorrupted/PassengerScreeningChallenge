@@ -134,7 +134,7 @@ def read_data(infile, scale=True):
     else:
         return real, imag
 
-def get_x_views(filename, x=4):
+def get_x_views(filename, x=16):
     data = read_data(filename)
     # Upright the image
     views = data.shape[2]
@@ -144,7 +144,6 @@ def name_to_array(name, path):
     # Given a name and path, return an array of images.
     array = np.array(get_x_views("{}/{}.{}".format(path, name, "aps"), x=16))
     array = np.expand_dims(array, 1)
-    array = np.pad(array, ((0,0), (0,0), (0, 1), (0, 0)), mode="constant", constant_values=0)
     
     return array
 

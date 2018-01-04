@@ -59,8 +59,7 @@ class mvcnn(nn.Module):
         outputs = []
         for i in range(x.size()[1]):
             view = x[:, i]
-            features = self.cnn(view)
-            # CNN attention
+            features = self.cnn(view)   # batch x channel(2048) x 10 x 8
             avg_pool = self.avgpool1(features).view(features.size(0), -1)
             attention = self.cnn_attention(avg_pool).unsqueeze(2)
             features = torch.mul(features, attention.unsqueeze(3).expand_as(features))
