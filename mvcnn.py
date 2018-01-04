@@ -57,36 +57,25 @@ class mvcnn(nn.Module):
     def forward(self, x):
         # Compute feature vector for each view
         outputs = []
-        for i in range(x.size()[1]):
+        for i in range(16):
             view = x[:, i]
             features = self.resnet(view)    # batch x channel(2048) x 10 x 8
             # CNN attention
-            avg_pool = self.avgpool1(features).view(features.size(0), -1)
-            attention = self.cnn_attention(avg_pool).unsqueeze(2)
-            features = torch.mul(features, attention.unsqueeze(3).expand_as(features))
-
-            # Go through each threat detection layer.
-            features = torch.cat((self.avgpool1(features).view(features.size(0), -1),
-                                    self.conv1(features).view(features.size(0), -1), 
-                                    self.conv2(features).view(features.size(0), -1),
-                                    self.conv3(features).view(features.size(0), -1)), 1)
+            features = torch.cat((self.conv1(features).view(features.size(0), -1), 
+                                self.conv2(features).view(features.size(0), -1),
+                                self.conv3(features).view(features.size(0), -1)), 1)
             outputs.append(features)
 
         # Feed results to LSTM.
         outputs = torch.stack(outputs, dim=0)
-        outputs, _ = self.lstm(outputs)
 
-        attn_weights = self.softmax(
-            self.attention(outputs[-1])
-        )
         # Apply attention to the outputs and combine into a single output.
         outputs = outputs.permute(1, 0, 2)
-        attn_weights = torch.unsqueeze(attn_weights, 1)
-        outputs = torch.bmm(attn_weights, outputs)
-
+        print(outputs.size())
+        outputs = outputs.view((2, 16*47616))
         # Feed to linear classifier.
-        outputs = torch.squeeze(outputs, 1)
         outputs = self.dropout(outputs)
+        print(outputs.size())
         outputs = self.fc(outputs)
 
         return outputs
