@@ -161,7 +161,7 @@ for epoch in range(epochs):
         print("Saving Model ... ", end = "")
         torch.save(model.state_dict(), "{}/tmp/model_{}.torch".format(base_dir, epoch))
         torch.save(optimizer.state_dict(), "{}/tmp/opt_{}.torch".format(base_dir, epoch))
-        with open('{}/tmp/loss_{}.txt'.format(base_dir, epoch), 'w+') as f
+        with open('{}/tmp/loss_{}.txt'.format(base_dir, epoch), 'w+') as f:
             print(loss_tracker_train, file = f)
             print(loss_tracker_val, file=f)
         print("Model Saved.")
