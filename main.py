@@ -16,7 +16,7 @@ from util import name_to_array, TransformDataset
 from mvcnn import mvcnn
 from sgdr import CosineLR
 
-DEBUG = True                # Loads small dataset and plots augmented images for debugging
+DEBUG = False                # Loads small dataset and plots augmented images for debugging
 epochs = 50
 state_dict = None           # Load previous model to continue training
 opt_dict = None             # Load previous model to continue training
@@ -136,8 +136,67 @@ for line in train_file:
     if name not in name_to_vector:
         name_to_vector[name] = np.zeros(17)
     name_to_vector[name][zone-1] += int(label)
+# If debug, only take 32 images for training.
+if DEBUG:
+    name_to_vector = {k: name_to_vector[k] for k in sorted(name_to_vector.keys())[:32]}
+    TEST_CNT = 30
+# Temp
+name_to_vector = {k: name_to_vector[k] for k in sorted(name_to_vector.keys())[:32]}
+TEST_CNT = 30
 
-# If debug, only take 16 images for training.
+name_to_vector = list(name_to_vector.items())
+random.shuffle(name_to_vector)
+print("Loading Images...")
+
+# Convert to raw training input and output
+# Images are (660, 512)
+sample_cnt = len(name_to_vector)
+print("{} samples found.".format(sample_cnt))
+
+names = [None] * sample_cnt
+# 16(images for one person) x 1(channel)
+training_input = np.empty((sample_cnt, 16, 1, 660, 512), dtype=np.float32)
+training_output = np.empty((sample_cnt, 17))
+for i in tqdm(range(sample_cnt)):
+    name, is_danger = name_to_vector[i]
+    input_tensor = name_to_array(name, "aps")
+    training_input[i] = input_tensor
+    training_output[i] = is_danger
+    names[i] = name
+print("Images Loading Finished.")
+
+
+print("Splitting into train/validation sets...", end='')
+training_input, valid_input = training_input[0:TEST_CNT], training_input[TEST_CNT:]
+training_output, valid_output = training_output[0:TEST_CNT], training_output[TEST_CNT:]
+print("Split Finished.")
+print("There are {} training images with size {}".format(TEST_CNT, training_input.shape))
+print("There are {} training images with size {}".format(sample_cnt - TEST_CNT, valid_input.shape))
+
+print("Creating DataLoaders...")
+training_input = torch.Tensor(training_input)
+training_output = torch.Tensor(training_output)
+valid_input = torch.Tensor(valid_input)
+valid_output = torch.Tensor(valid_output)
+
+dataset = TransformDataset(training_input, training_output, names, train=True)
+data_loader = torch.utils.data.DataLoader(dataset, batch_size=2, num_workers=8, pin_memory=True, drop_last=True)
+valid_dataset = TransformDataset(valid_input, valid_output, names, train=False)
+valid_data_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=2, num_workers=0, pin_memory=True, drop_last=False)
+
+criterion = torch.nn.BCEWithLogitsLoss().cuda()
+optimizer = torch.optim.SGD(model.parameters(), lr=1e-2, momentum=0.9, dampening=0, weight_decay=1e-4, nesterov=True)
+scheduler = CosineLR(optimizer, step_size_min=1e-4, t0=200, tmult=1)
+# Try this for benchmark later.
+# scheduler = StepLR(optimizer, step_size = 0.5)
+if state_dict:
+    model.load_state_dict(torch.load(state_dict))
+    optimizer.load_state_dict(torch.load(opt_dict))
+    print("Loaded old weights")
+
+torch.backends.cudnn.benchmark = False
+
+print("Beginning training...")
 if DEBUG:
     time_str = str(int(time.time()))[2::]
     base_dir = "debug/{}".format(time_str)
@@ -171,7 +230,7 @@ for epoch in range(epochs):
         plt.plot(loss_tracker_train[1:], label="Training loss")
         plt.plot(loss_tracker_val[1:], label="Validation loss")
         plt.legend(loc="upper left")
-        plt.savefig("{}/predictions_{}.png".format(base_dir, epoch))
+        plt.savefig("{}/tmp/predictions_{}.png".format(base_dir, epoch))
         print("Plot Finished.")
 
     this_loss = loss_tracker_val[-1]
