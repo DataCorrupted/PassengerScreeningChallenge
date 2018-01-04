@@ -16,41 +16,23 @@ class mvcnn(nn.Module):
         super(mvcnn, self).__init__()
 
         # Define initial pretrained CNN each view goes through
-        self.cnn = resnet50(pretrained=pretrained)
-
-        # 3 convolutional layers of differing kernel size for locating threats of different size.
-        self.conv1 = nn.Sequential(
-                        nn.Conv2d(2048, 512, kernel_size=(1,1), stride=1, padding=0, dilation=1, groups=1, bias=True),
+        self.resnet = resnet50(pretrained=pretrained)
+        self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+        self.conv = nn.Sequential(
+                        nn.Conv2d(32768, 1024, kernel_size=(3,3), stride = 1, padding = 1),
                         nn.ReLU(),
-                        nn.BatchNorm2d(512)
-                    )
-        self.conv2 = nn.Sequential(
-                        nn.Conv2d(2048, 256, kernel_size=(3,3), stride=2, padding=1, dilation=1, groups=1, bias=True),
-                        nn.ReLU(),
-                        nn.BatchNorm2d(256)
-                    )
-        self.conv3 = nn.Sequential(
-                        nn.Conv2d(2048, 128, kernel_size=(5,5), stride=3, padding=2, dilation=1, groups=1, bias=True),
-                        nn.ReLU(),
-                        nn.BatchNorm2d(128)
-                    )
-
-        self.avgpool1 = nn.AdaptiveAvgPool2d(1)
-
-        # Feed each view to LSTM with attention.
-        self.lstm = nn.LSTM(input_size=2048 + 128*4*3 + 256*5*4 + 512*10*8, hidden_size=768, num_layers=1,
-                            bias=True, batch_first=False, dropout=0, bidirectional=False)
-
-        # Attention weights for LSTM.
-        self.attention = nn.Linear(768, 16)
-        self.softmax = nn.Softmax(dim = 1)
+                        nn.BatchNorm2d(1024))
 
         # Experimental CNN attention layer (accidentally left this in when I made my final submissions...
         # haven't been able to tell if it hurts or helps.)
         self.cnn_attention = nn.Linear(2048, 2048)
 
         # LSTM results are fed to a final linear layer.
-        self.dropout = nn.Dropout(p=0.1)
+        self.dropout = nn.Dropout(p=0.2)
+        self.h = nn.Sequential(
+                    nn.Linear(20480, 768),
+                    nn.Dropout(p = 0.2),
+                    nn.ReLU())
         self.fc = nn.Linear(768, num_classes)
         
 
@@ -59,33 +41,17 @@ class mvcnn(nn.Module):
         outputs = []
         for i in range(x.size()[1]):
             view = x[:, i]
-            features = self.cnn(view)   # batch x channel(2048) x 10 x 8
-            avg_pool = self.avgpool1(features).view(features.size(0), -1)
-            attention = self.cnn_attention(avg_pool).unsqueeze(2)
-            features = torch.mul(features, attention.unsqueeze(3).expand_as(features))
+            features = self.resnet(view)   # batch x channel(2048) x 10 x 8
 
-            # Go through each threat detection layer.
-            features = torch.cat((self.avgpool1(features).view(features.size(0), -1),
-                                    self.conv1(features).view(features.size(0), -1), 
-                                    self.conv2(features).view(features.size(0), -1),
-                                    self.conv3(features).view(features.size(0), -1)), 1)
             outputs.append(features)
-
-        # Feed results to LSTM.
-        outputs = torch.stack(outputs, dim=0)
-        outputs, _ = self.lstm(outputs)
-
-        attn_weights = self.softmax(
-            self.attention(outputs[-1])
-        )
-        # Apply attention to the outputs and combine into a single output.
-        outputs = outputs.permute(1, 0, 2)
-        attn_weights = torch.unsqueeze(attn_weights, 1)
-        outputs = torch.bmm(attn_weights, outputs)
-
+        N, C, W, H = outputs[0].size()
+        outputs = torch.stack(outputs, dim=1).view(N, 16 * C, W, H) # N x 32768 x 10 x 8
+        outputs = self.conv(outputs)    # N x 1024 x 10 x 8
+        outputs = self.maxpool(outputs) # N x 1024 x 5 x 4
+        outputs = outputs.view(N, -1)
         # Feed to linear classifier.
-        outputs = torch.squeeze(outputs, 1)
         outputs = self.dropout(outputs)
+        outputs = self.h(outputs)
         outputs = self.fc(outputs)
 
         return outputs
