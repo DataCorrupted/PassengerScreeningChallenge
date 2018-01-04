@@ -136,7 +136,7 @@ for line in train_file:
         name_to_vector[name] = np.zeros(17)
     name_to_vector[name][zone-1] += int(label)
 
-# If debug, only take 16 images for training.
+# If debug, only take 32 images for training.
 if DEBUG:
     name_to_vector = {k: name_to_vector[k] for k in sorted(name_to_vector.keys())[:32]}
     TEST_CNT = 30
