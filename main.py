@@ -139,69 +139,13 @@ for line in train_file:
 
 # If debug, only take 16 images for training.
 if DEBUG:
-    name_to_vector = {k: name_to_vector[k] for k in sorted(name_to_vector.keys())[:32]}
-    TEST_CNT = 30
-name_to_vector = list(name_to_vector.items())
-random.shuffle(name_to_vector)
-print("Loading Images...")
-
-# Convert to raw training input and output
-# Images are (660, 512)
-sample_cnt = len(name_to_vector)
-print("{} samples found.".format(sample_cnt))
-
-names = [None] * sample_cnt
-# 16(images for one person) x 1(channel)
-training_input = np.empty((sample_cnt, 16, 1, 660, 512), dtype=np.float32)
-training_output = np.empty((sample_cnt, 17))
-for i in tqdm(range(sample_cnt)):
-    name, is_danger = name_to_vector[i]
-    input_tensor = name_to_array(name, "aps")
-    training_input[i] = input_tensor
-    training_output[i] = is_danger
-    names[i] = name
-print("Images Loading Finished.")
-
-
-print("Splitting into train/validation sets...", end='')
-training_input, valid_input = training_input[0:TEST_CNT], training_input[TEST_CNT:]
-training_output, valid_output = training_output[0:TEST_CNT], training_output[TEST_CNT:]
-print("Split Finished.")
-print("There are {} training images with size {}".format(TEST_CNT, training_input.shape))
-print("There are {} training images with size {}".format(sample_cnt - TEST_CNT, valid_input.shape))
-
-print("Creating DataLoaders...")
-training_input = torch.Tensor(training_input)
-training_output = torch.Tensor(training_output)
-valid_input = torch.Tensor(valid_input)
-valid_output = torch.Tensor(valid_output)
-
-dataset = TransformDataset(training_input, training_output, names, train=True)
-data_loader = torch.utils.data.DataLoader(dataset, batch_size=2, num_workers=8, pin_memory=True, drop_last=True)
-valid_dataset = TransformDataset(valid_input, valid_output, names, train=False)
-valid_data_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=2, num_workers=0, pin_memory=True, drop_last=False)
-
-criterion = torch.nn.BCEWithLogitsLoss().cuda()
-optimizer = torch.optim.SGD(model.parameters(), lr=1e-2, momentum=0.9, dampening=0, weight_decay=1e-4, nesterov=True)
-scheduler = CosineLR(optimizer, step_size_min=1e-4, t0=200, tmult=1)
-# Try this for benchmark later.
-# scheduler = StepLR(optimizer, step_size = 0.5)
-if state_dict:
-    model.load_state_dict(torch.load(state_dict))
-    optimizer.load_state_dict(torch.load(opt_dict))
-    print("Loaded old weights")
-
-torch.backends.cudnn.benchmark = False
-
-print("Beginning training...")
-time_str = str(int(time.time()))[2::]
-# Path to save models and predictions
-if DEBUG:
+    time_str = str(int(time.time()))[2::]
     base_dir = "debug/{}".format(time_str)
 else:
-    base_dir = "models/{}".format(time_str)
+    base_dir = "models/lstm"
 if not os.path.exists(base_dir):
     os.mkdir(base_dir)
+    os.mkdir(base_dir+"/tmp")
 
 loss_tracker_train = []
 loss_tracker_val = []
@@ -213,6 +157,23 @@ for epoch in range(epochs):
     train(data_loader, model, criterion, optimizer, scheduler, epoch)
     validate(valid_data_loader, model, criterion)
 
+    if epoch and epoch % 25 == 0:
+        print("Saving Model ... ", end = "")
+        torch.save(model.state_dict(), "{}/tmp/model_{}.torch".format(base_dir, epoch))
+        torch.save(optimizer.state_dict(), "{}/tmp/opt_{}.torch".format(base_dir, epoch))
+        with open('{}/tmp/loss_{}.txt'.format(base_dir, epoch), 'w+') as f
+            print(loss_tracker_train, file = f)
+            print(loss_tracker_val, file=f)
+        print("Model Saved.")
+        print("Plotting train/valid loss ... ", end = "")
+        # Save a plot of the average loss over time
+        plt.clf()
+        plt.plot(loss_tracker_train[1:], label="Training loss")
+        plt.plot(loss_tracker_val[1:], label="Validation loss")
+        plt.legend(loc="upper left")
+        plt.savefig("{}/predictions_{}.png".format(base_dir, epoch))
+        print("Plot Finished.")
+
     this_loss = loss_tracker_val[-1]
     if this_loss < best_loss:
         best_loss = this_loss
@@ -223,8 +184,8 @@ for epoch in range(epochs):
         torch.save(model.state_dict(), "{}/best_model_{}_{:.4f}.torch".format(base_dir, epoch, this_loss))
 
 print("Saving Model ... ", end = "")
-torch.save(model.state_dict(), "{}/model_{}.torch".format(base_dir, epoch))
-torch.save(optimizer.state_dict(), "{}/opt_{}.torch".format(base_dir, epoch))
+torch.save(model.state_dict(), "{}/lstm.torch".format(base_dir, epoch))
+torch.save(optimizer.state_dict(), "{}/lstm.torch".format(base_dir, epoch))
 print("Model Saved.")
 print("Plotting train/valid loss ... ", end = "")
 # Save a plot of the average loss over time
