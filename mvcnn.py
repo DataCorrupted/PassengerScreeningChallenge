@@ -16,7 +16,7 @@ class mvcnn(nn.Module):
         super(mvcnn, self).__init__()
 
         # Define initial pretrained CNN each view goes through
-        self.cnn = resnet50(pretrained=pretrained)
+        self.resnet = resnet50(pretrained=pretrained)
 
         # 3 convolutional layers of differing kernel size for locating threats of different size.
         self.conv1 = nn.Sequential(
@@ -59,7 +59,7 @@ class mvcnn(nn.Module):
         outputs = []
         for i in range(x.size()[1]):
             view = x[:, i]
-            features = self.cnn(view)
+            features = self.resnet(view)    # batch x channel(2048) x 10 x 8
             # CNN attention
             avg_pool = self.avgpool1(features).view(features.size(0), -1)
             attention = self.cnn_attention(avg_pool).unsqueeze(2)
