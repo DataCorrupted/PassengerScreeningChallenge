@@ -16,7 +16,7 @@ from util import name_to_array, TransformDataset
 from mvcnn import mvcnn
 from sgdr import CosineLR
 
-DEBUG = False                # Loads small dataset and plots augmented images for debugging
+DEBUG = True                # Loads small dataset and plots augmented images for debugging
 epochs = 50
 state_dict = None           # Load previous model to continue training
 opt_dict = None             # Load previous model to continue training
