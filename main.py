@@ -17,7 +17,7 @@ from mvcnn import mvcnn
 from sgdr import CosineLR
 
 DEBUG = False                # Loads small dataset and plots augmented images for debugging
-epochs = 50
+epochs = 100
 state_dict = None           # Load previous model to continue training
 opt_dict = None             # Load previous model to continue training
 TEST_CNT = 1024 
@@ -140,10 +140,6 @@ for line in train_file:
 if DEBUG:
     name_to_vector = {k: name_to_vector[k] for k in sorted(name_to_vector.keys())[:32]}
     TEST_CNT = 30
-# Temp
-name_to_vector = {k: name_to_vector[k] for k in sorted(name_to_vector.keys())[:32]}
-TEST_CNT = 30
-
 name_to_vector = list(name_to_vector.items())
 random.shuffle(name_to_vector)
 print("Loading Images...")
