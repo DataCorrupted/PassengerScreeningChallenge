@@ -1,0 +1,110 @@
+\documentclass[conference,compsoc]{IEEEtran}
+\usepackage{cite}
+\usepackage{listings}
+\usepackage{blindtext}
+\usepackage{enumitem}
+% for coding highlight
+\usepackage{graphicx}
+\usepackage[colorlinks=true,urlcolor=blue]{hyperref}
+\usepackage{amsmath, amsthm, amssymb}
+\usepackage{subfloat}
+\usepackage{ulem}
+\usepackage{indentfirst}
+\usepackage{booktabs}
+\usepackage{wrapfig,lipsum,booktabs}
+\usepackage{array}
+\newcommand{\subparagraph}{}
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+
+\begin{document}
+\title{
+	Deep Learning Course Proposal \\
+	Passenger Screening Algorithm Challenge \\
+}
+
+
+% author names and affiliations
+% use a multiple column layout for up to three different
+% affiliations
+\author{
+	\IEEEauthorblockN{Yuyang Rong}
+	\IEEEauthorblockA{
+		School of Information Science and Technology \\
+		ShanghaiTech University \\
+		Student ID: 69850764 \\
+	}
+\and
+	\IEEEauthorblockN{Peng Ding}
+	\IEEEauthorblockA{
+		School of Information Science and Technology \\
+		ShanghaiTech University \\
+		Student ID: 79406120 \\
+	}
+}
+
+\maketitle
+
+\begin{abstract}
+	The safety issue has always been a major concern since the day that aviation was civilianized. Dectecting whether passengers are carrying any prohibited items is one of the key steps before passenger board the plane. Conventionally, passengers are required to be screened and physically examined by TSA staffs. Such procedure takes time and effort to operate, without guaranteeing the accuracy of checking. Whereas complaints call upon the invasion of personal privacy. With all these being considered, people rarely consider the traditional security check as a satisfactory experience. We propose a computer vision approach, utilizing deep learning method by examining 17 critical positions of human gestures, to facilitate with the detection of prohibited items.
+\end{abstract}
+\section{Introduction}
+	\par
+	This is a Kaggle challenges proposed by the Department of Homeland Security, USA, asking for algorithms that can improve the accuracy of protential threats detection based on screening in airport. Traditional screening plus manual check approach is time consuming and facing ever increasing difficulty as the potential threats are also developing into even advanced level. With the help of up-to-date advanced learning algorithm, tackling this problem not only intrigue us to do more study but also sparking high potential value to the safety of millions of aviation passengers around the globe.
+	\par
+	In our work, we will be focusing on the examine of 17 key regions of a human body, as listed in the table 1:
+	% Please add the following required packages to your document preamble:
+	\begin{table}[h]
+	\centering
+	\begin{tabular}{|p{1cm}|p{1.5cm}|p{4.5cm}|}
+	\toprule
+	\multicolumn{1}{|c|}{Region} & Region Name             & Region Location Description                                                                                        \\ \midrule
+	1                            & Right Bicep             & Top of the right shoulder to just above the elbow                                                                  \\ \midrule
+	2                            & Right Forearm           & Elbow to the finger tips                                                                                           \\ \midrule
+	3                            & Left Bicep              & Top of the right shoulder to just above the elbow                                                                  \\ \midrule
+	4                            & Left Forearm            & Elbow to the finger tips                                                                                           \\ \midrule
+	5                            & Upper Chest             & Front of the body                                                                                                  \\ \midrule
+	6                            & Right Rib Cage and Abs  & From the bottom of the pectoral muscle to the top of the waistline, center of the back, rib cage on the right side \\ \midrule
+	7                            & Left Rib Cage and Ab    & From the bottom of the pectoral muscle to the top of the waistline, center of the back, rib cage on the left side  \\ \midrule
+	8                            & Upper Right Hip / Thigh & Waistline to the half of person's thigh and extend to back including half of the right buttocks(pocket region)     \\ \midrule
+	9                            & Groin(Sensitive Area)   & Below the central part of the waist, includes part of the both right and left inner and upper thigh                \\ \midrule
+	10                           & Upper Left Hip / Thigh  & Waist line to the half of person's thigh and extend to back including half of the right buttocks(pocket region)    \\ \midrule
+	11                           & Lower Right Thigh       & Half of the lower right thigh - including the knee                                                                 \\ \midrule
+	12                           & Lower Left Thigh        & Half of the lower left thigh - including the knee                                                                  \\ \midrule
+	13                           & Right Calf              & Below the knee to the lower leg                                                                                    \\ \midrule
+	14                           & Left Calf               & Below the knee to the lower leg                                                                                    \\ \midrule
+	15                           & Right Ankle Bone        & Starts at the end of the calf muscle and includes the foot                                                         \\ \midrule
+	16                           & left Ankle Bone         & Starts at the end of the calf muscle and includes the foot                                                         \\ \midrule
+	17                           & Upper Back              & Upper half of the back(ends at the same point where the pectoral region stops)                                     \\ \bottomrule
+	\end{tabular}%
+	\caption{My caption}
+	\label{my-label}
+	\end{table}
+
+\section{Data}
+	We will use data provided by Kaggle, to be more precise, by the Department of Homeland Security, USA. All the data are packed in the following four formats:
+	\begin{itemize}
+		\item{*.ahi} Calibrated object raw data file.
+		\item{*.aps} Projected image angle sequence file.
+		\item{*.a3d} Combined image 3D file.
+		\item{*.a3daps} Combined image angle sequence file.
+	\end{itemize}
+\section{Approach \& Related Work}
+	\par
+	Ever since \cite{hinton2006fast} proposed BP, Deep learning has achieved a lot in terms of CV, speech recognition, NLP, etc.
+	Years after that, more efficient and robust algorithms like SGD\cite{bottou2010large, lecun2012efficient}, BatchNorm\cite{ioffe2015batch}, Dropout\cite{hinton2012improving, srivastava2014dropout} have also been proposed. It is especially interesting to do projects on Computer Vision when ConvNet\cite{krizhevsky2012imagenet} has shown great potential in terms of accuracy.
+	\par
+	In our project, we will adopt ConvNet to do the recognition of potential threating objects. Also, well-respected approaches, such as the dropout mentioned above, will be tried and tested.
+\section{Experiments}
+	We will conduct experiments on validation set to tune our hyper-parameters. We will compare the loss function wrt. the prediction and the ground truth. The loss function is defined as follow: \\
+	(If there are $N$ images, there will be $\mathcal{N} = 17N$ tests,)
+	$$ L = -\frac{1}{\mathcal{N}}\sum_{i=1}^\mathcal{N}{y_i\log(\hat{y}_i) + (1-y_i)log(1-\hat{y}_i)}$$
+	Graphical illustration such as plotting loss vs. each parameters will be carefully selected for the result demonstration.
+\section{Evaluation}
+	Final evaluation will not be limited to validation set, but we will evaluate our system based on the rating algorithm proposed by Kaggle. We shall see how our kernal works after the submission.
+
+
+\bibliographystyle{IEEEtran}
+%% De-comment this line if you have any reference.
+%% And don't forget to change .bib file.
+\bibliography{proposal}
+\end{document}
