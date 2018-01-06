@@ -16,10 +16,10 @@ from util import name_to_array, TransformDataset
 from mvcnn import mvcnn
 from sgdr import CosineLR
 
-DEBUG = False                # Loads small dataset and plots augmented images for debugging
-epochs = 100
-state_dict = None           # Load previous model to continue training
-opt_dict = None             # Load previous model to continue training
+DEBUG = True
+EPOCH = 100
+START = 51
+FOLDER = "models/lstm/tmp/"
 TEST_CNT = 1024 
 
 class AverageMeter(object):
@@ -79,7 +79,7 @@ def train(train_loader, model, criterion, optimizer, scheduler, epoch):
             print('Epoch/Batch: [{0}/{1}]/[{2}/{3}]\t'
                   'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                   'Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(
-                   epoch, epochs, i, len(train_loader), batch_time=batch_time, loss=losses))
+                   epoch, EPOCH, i, len(train_loader), batch_time=batch_time, loss=losses))
 
         del batch, target, output, loss
 
@@ -124,18 +124,19 @@ print("Initializing model")
 model = mvcnn(17, pretrained=True).cuda()
 
 # Create dictionary matching name to vector
-train_file = open('stage1_labels.csv')
-train_file.readline()
-# Use dict for easier indexing.
-name_to_vector = {}
-for line in train_file:
-    name_zone, label = line.strip().split(',')
-    name, zone = name_zone.split('_')
-    # Take the number out.
-    zone = int(zone[4:])
-    if name not in name_to_vector:
-        name_to_vector[name] = np.zeros(17)
-    name_to_vector[name][zone-1] += int(label)
+with open('stage1_labels.csv') as train_file:
+    train_file.readline()
+    # Use dict for easier indexing.
+    name_to_vector = {}
+    for line in train_file:
+        print(line)
+        name_zone, label = line.strip().split(',')
+        name, zone = name_zone.split('_')
+        # Take the number out.
+        zone = int(zone[4:])
+        if name not in name_to_vector:
+            name_to_vector[name] = np.zeros(17)
+        name_to_vector[name][zone-1] += int(label)
 # If debug, only take 32 images for training.
 if DEBUG:
     name_to_vector = {k: name_to_vector[k] for k in sorted(name_to_vector.keys())[:32]}
@@ -185,14 +186,9 @@ optimizer = torch.optim.SGD(model.parameters(), lr=1e-2, momentum=0.9, dampening
 scheduler = CosineLR(optimizer, step_size_min=1e-4, t0=200, tmult=1)
 # Try this for benchmark later.
 # scheduler = StepLR(optimizer, step_size = 0.5)
-if state_dict:
-    model.load_state_dict(torch.load(state_dict))
-    optimizer.load_state_dict(torch.load(opt_dict))
-    print("Loaded old weights")
 
 torch.backends.cudnn.benchmark = False
 
-print("Beginning training...")
 if DEBUG:
     time_str = str(int(time.time()))[2::]
     base_dir = "debug/{}".format(time_str)
@@ -208,17 +204,27 @@ ideal_loss = 0.01 # Ideal.
 best_loss = 0xffff
 this_loss = 0xffff
 
-for epoch in range(epochs):
+if START > 0:
+    model.load_state_dict(torch.load(FOLDER + "model_{}.torch".format(START)))
+    optimizer.load_state_dict(torch.load(FOLDER + "opt_{}.torch".format(START)))
+    with open(FOLDER + 'loss_{}.txt'.format(START)) as loss:
+        # Danger but I don't care.
+        loss_tracker_train = eval(loss.readline())
+        loss_tracker_val = eval(loss.readline())
+    print("Old model detected and loaded, resume training from epoch {}".format(START))
+
+print("Beginning training...")
+for epoch in range(START+1, EPOCH+1):
     train(data_loader, model, criterion, optimizer, scheduler, epoch)
     validate(valid_data_loader, model, criterion)
 
-    if epoch and epoch % 1 == 0:
+    if epoch and epoch % 10 == 0:
         print("Saving Model ... ", end = "")
         torch.save(model.state_dict(), "{}/tmp/model_{}.torch".format(base_dir, epoch))
         torch.save(optimizer.state_dict(), "{}/tmp/opt_{}.torch".format(base_dir, epoch))
-        with open('{}/tmp/loss_{}.txt'.format(base_dir, epoch), 'w+') as f:
-            print(loss_tracker_train, file = f)
-            print(loss_tracker_val, file=f)
+        with open('{}/tmp/loss_{}.txt'.format(base_dir, epoch), 'w+') as loss:
+            print(loss_tracker_train, file = loss)
+            print(loss_tracker_val, file=loss)
         print("Model Saved.")
         print("Plotting train/valid loss ... ", end = "")
         # Save a plot of the average loss over time
