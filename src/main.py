@@ -16,10 +16,10 @@ from util import name_to_array, TransformDataset
 from mvcnn import mvcnn
 from sgdr import CosineLR
 
-DEBUG = True                # Loads small dataset and plots augmented images for debugging
-epochs = 50
-state_dict = None           # Load previous model to continue training
-opt_dict = None             # Load previous model to continue training
+DEBUG = True
+EPOCH = 100
+START = 51
+FOLDER = "models/lstm/tmp/"
 TEST_CNT = 1024 
 
 class AverageMeter(object):
@@ -78,7 +78,7 @@ def train(train_loader, model, criterion, optimizer, scheduler, epoch):
             print('Epoch/Batch: [{0}/{1}]/[{2}/{3}]\t'
                   'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                   'Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(
-                   epoch, epochs, i, len(train_loader), batch_time=batch_time, loss=losses))
+                   epoch, EPOCH, i, len(train_loader), batch_time=batch_time, loss=losses))
 
         del batch, target, output, loss
 
@@ -123,19 +123,19 @@ print("Initializing model")
 model = mvcnn(17, pretrained=True).cuda()
 
 # Create dictionary matching name to vector
-train_file = open('stage1_labels.csv')
-train_file.readline()
-# Use dict for easier indexing.
-name_to_vector = {}
-for line in train_file:
-    name_zone, label = line.strip().split(',')
-    name, zone = name_zone.split('_')
-    # Take the number out.
-    zone = int(zone[4:])
-    if name not in name_to_vector:
-        name_to_vector[name] = np.zeros(17)
-    name_to_vector[name][zone-1] += int(label)
-
+with open('stage1_labels.csv') as train_file:
+    train_file.readline()
+    # Use dict for easier indexing.
+    name_to_vector = {}
+    for line in train_file:
+        print(line)
+        name_zone, label = line.strip().split(',')
+        name, zone = name_zone.split('_')
+        # Take the number out.
+        zone = int(zone[4:])
+        if name not in name_to_vector:
+            name_to_vector[name] = np.zeros(17)
+        name_to_vector[name][zone-1] += int(label)
 # If debug, only take 32 images for training.
 if DEBUG:
     name_to_vector = {k: name_to_vector[k] for k in sorted(name_to_vector.keys())[:32]}
@@ -151,7 +151,7 @@ print("{} samples found.".format(sample_cnt))
 
 names = [None] * sample_cnt
 # 16(images for one person) x 1(channel)
-training_input = np.empty((sample_cnt, 16, 1, 660  + 1, 512  + 0), dtype=np.float32)
+training_input = np.empty((sample_cnt, 16, 1, 660, 512), dtype=np.float32)
 training_output = np.empty((sample_cnt, 17))
 for i in tqdm(range(sample_cnt)):
     name, is_danger = name_to_vector[i]
@@ -185,22 +185,17 @@ optimizer = torch.optim.SGD(model.parameters(), lr=1e-2, momentum=0.9, dampening
 scheduler = CosineLR(optimizer, step_size_min=1e-4, t0=200, tmult=1)
 # Try this for benchmark later.
 # scheduler = StepLR(optimizer, step_size = 0.5)
-if state_dict:
-    model.load_state_dict(torch.load(state_dict))
-    optimizer.load_state_dict(torch.load(opt_dict))
-    print("Loaded old weights")
 
 torch.backends.cudnn.benchmark = False
 
-print("Beginning training...")
-time_str = str(int(time.time()))[2::]
-# Path to save models and predictions
 if DEBUG:
+    time_str = str(int(time.time()))[2::]
     base_dir = "debug/{}".format(time_str)
 else:
-    base_dir = "models/{}".format(time_str)
+    base_dir = "models/lstm"
 if not os.path.exists(base_dir):
     os.mkdir(base_dir)
+    os.mkdir(base_dir+"/tmp")
 
 loss_tracker_train = []
 loss_tracker_val = []
@@ -208,9 +203,36 @@ ideal_loss = 0.01 # Ideal.
 best_loss = 0xffff
 this_loss = 0xffff
 
-for epoch in range(epochs):
+if START > 0:
+    model.load_state_dict(torch.load(FOLDER + "model_{}.torch".format(START)))
+    optimizer.load_state_dict(torch.load(FOLDER + "opt_{}.torch".format(START)))
+    with open(FOLDER + 'loss_{}.txt'.format(START)) as loss:
+        # Danger but I don't care.
+        loss_tracker_train = eval(loss.readline())
+        loss_tracker_val = eval(loss.readline())
+    print("Old model detected and loaded, resume training from epoch {}".format(START))
+
+print("Beginning training...")
+for epoch in range(START+1, EPOCH+1):
     train(data_loader, model, criterion, optimizer, scheduler, epoch)
     validate(valid_data_loader, model, criterion)
+
+    if epoch and epoch % 10 == 0:
+        print("Saving Model ... ", end = "")
+        torch.save(model.state_dict(), "{}/tmp/model_{}.torch".format(base_dir, epoch))
+        torch.save(optimizer.state_dict(), "{}/tmp/opt_{}.torch".format(base_dir, epoch))
+        with open('{}/tmp/loss_{}.txt'.format(base_dir, epoch), 'w+') as loss:
+            print(loss_tracker_train, file = loss)
+            print(loss_tracker_val, file=loss)
+        print("Model Saved.")
+        print("Plotting train/valid loss ... ", end = "")
+        # Save a plot of the average loss over time
+        plt.clf()
+        plt.plot(loss_tracker_train[1:], label="Training loss")
+        plt.plot(loss_tracker_val[1:], label="Validation loss")
+        plt.legend(loc="upper left")
+        plt.savefig("{}/tmp/predictions_{}.png".format(base_dir, epoch))
+        print("Plot Finished.")
 
     this_loss = loss_tracker_val[-1]
     if this_loss < best_loss:
@@ -222,8 +244,8 @@ for epoch in range(epochs):
         torch.save(model.state_dict(), "{}/best_model_{}_{:.4f}.torch".format(base_dir, epoch, this_loss))
 
 print("Saving Model ... ", end = "")
-torch.save(model.state_dict(), "{}/model_{}.torch".format(base_dir, epoch))
-torch.save(optimizer.state_dict(), "{}/opt_{}.torch".format(base_dir, epoch))
+torch.save(model.state_dict(), "{}/lstm.torch".format(base_dir, epoch))
+torch.save(optimizer.state_dict(), "{}/lstm.torch".format(base_dir, epoch))
 print("Model Saved.")
 print("Plotting train/valid loss ... ", end = "")
 # Save a plot of the average loss over time
