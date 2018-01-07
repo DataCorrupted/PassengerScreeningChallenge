@@ -85,7 +85,7 @@
 	\par To tackle this problem, first we have to partition human bodies into 17 parts, see Fig\ref{bodyzones}
 	\begin{figure} [ht]
 		\centering
-		\includegraphics[width=\linewidth]{./Pic/body_zones}
+		\includegraphics[width=\linewidth]{../Pic/body_zones}
 		\caption{17 zones of human body.}
 		\label{bodyzones}
 	\end{figure}
@@ -120,7 +120,7 @@
 		\end{table}
 		\begin{figure} [h]
 			\centering
-			\includegraphics[width=\linewidth]{./Pic/bars}
+			\includegraphics[width=\linewidth]{../Pic/bars}
 			\caption{Visualization of the positive label distribution.}
 			\label{bars}
 		\end{figure}
@@ -128,7 +128,7 @@
 	\par Besides, after seen all 16 images of one subject, the dangerous object is rather ambiguous and not clear, which made this task even harder.
 	\begin{figure}[h] \label{ffefec}
 		\centering
-		\includegraphics[width=0.9\linewidth]{./Pic/ffefec0cd4e1e2c3fe64bb93f082efdd}
+		\includegraphics[width=0.9\linewidth]{../Pic/ffefec0cd4e1e2c3fe64bb93f082efdd}
 		\caption{This passenger is labeled to have objects in is left arm and crotch. The back of his left arm is abnormal(dark).}
 	\end{figure}
 	\subsubsection{Too few positive} It is depressing to see the fact that there isn't much positive cases in data set when we know that deep networks loves positive case.	
@@ -143,7 +143,7 @@
 		\par The image is cropped into 16 sectors, each sector has size 250*250 pixels. The table listed the upper left conner of each sector:
 		\begin{figure}[h] \label{cropped}
 			\centering
-			\includegraphics[width=0.9\linewidth]{./Pic/cropped}
+			\includegraphics[width=0.9\linewidth]{../Pic/cropped}
 			\caption{A cropped example of the man shown before.}
 		\end{figure}
 		\begin{table}[h]
@@ -185,7 +185,7 @@ zone_slice_list = [ [ # threat zone 1
 		\par As shown in \ref{noisy}, the scan data can be rather noisy. Our solution is to add a threshold to it. The threshold we choose is 12 in a gray scale image.
 		\begin{figure}[h] \label{noisy}
 			\centering
-			\includegraphics[width=0.7\linewidth]{./Pic/noisy}
+			\includegraphics[width=0.7\linewidth]{../Pic/noisy}
 			\caption{The scan data is rather noisy.}
 		\end{figure}
 		\par For each region we have cropped, we will zero-mean it and normalize it.
