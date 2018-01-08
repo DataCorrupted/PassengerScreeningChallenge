@@ -78,7 +78,15 @@
 
 \usepackage{graphicx} % Allows including images
 \usepackage{booktabs} % Allows the use of \toprule, \midrule and \bottomrule in tables
-
+\usepackage[absolute,overlay]{textpos}
+\setbeamercolor{framesource}{fg=gray}
+\setbeamerfont{framesource}{size=\tiny}
+\newcommand{\source}[1]{
+\begin{textblock*}{6cm}(0.1cm,8.7cm)
+    \begin{beamercolorbox}[ht=0.5cm,left]{framesource}
+        \usebeamerfont{framesource}\usebeamercolor[fg]{framesource} Image Source: {#1}
+    \end{beamercolorbox}
+\end{textblock*}}
 %----------------------------------------------------------------------------------------
 %	TITLE PAGE
 %----------------------------------------------------------------------------------------
@@ -102,174 +110,236 @@ Shanghaitech University \\ % Your institution for the title page
 \titlepage % Print the title page as the first slide
 \end{frame}
 
-% \begin{frame}
-% \frametitle{Overview} % Table of contents slide, comment this block out to remove it
-% \tableofcontents % Throughout your presentation, if you choose to use \section{} and \subsection{} commands, these will automatically be printed on this slide as an overview of your presentation
-% \end{frame}
+\begin{frame}
+\frametitle{Overview} % Table of contents slide, comment this block out to remove it
+\tableofcontents % Throughout your presentation, if you choose to use \section{} and \subsection{} commands, these will automatically be printed on this slide as an overview of your presentation
+\end{frame}
 
 %----------------------------------------------------------------------------------------
 %	PRESENTATION SLIDES
 %----------------------------------------------------------------------------------------
 
 %------------------------------------------------
-\section{First Section} % Sections can be created in order to organize your presentation into discrete blocks, all sections and subsections are automatically printed in the table of contents as an overview of the talk
-%------------------------------------------------
-
-\subsection{Introduction} % A subsection can be created just before a set of slides with a common theme to further break down your presentation into chunks
-
-\begin{frame}
-\frametitle{Challenge}
-
-\end{frame}
-
-%------------------------------------------------
-\begin{frame}
-\frametitle{A bite into Data}
-
-\end{frame}
-%------------------------------------------------
-\begin{frame}
-\frametitle{A bite into Data}
-
-\end{frame}
-%------------------------------------------------
-\begin{frame}
-\frametitle{A bite into Data}
-
-\end{frame}
-
+\section{Introduction} % Sections can be created in order to organize your presentation into discrete blocks, all sections and subsections are automatically printed in the table of contents as an overview of the talk
 %------------------------------------------------
 
 \begin{frame}
-\frametitle{Bullet Points}
-\begin{itemize}
-\item Lorem ipsum dolor sit amet, consectetur adipiscing elit
-\item Aliquam blandit faucibus nisi, sit amet dapibus enim tempus eu
-\item Nulla commodo, erat quis gravida posuere, elit lacus lobortis est, quis porttitor odio mauris at libero
-\item Nam cursus est eget velit posuere pellentesque
-\item Vestibulum faucibus velit a augue condimentum quis convallis nulla gravida
-\end{itemize}
+\frametitle{Motivation}
+	\begin{itemize}
+	\item Is any passenger carrying dangerous objects? 
+	\item Transportation Security Administration(TSA): Use Millimeter Wave Unit to find out
+	\item The image can be vague and unclear.
+	\item Humans is not efficient in determining whether a passenger is carrying banned object.
+	\item \textbf{How can machines help?}
+	\end{itemize}
+	\begin{figure}
+		\includegraphics[width=2cm]{../Pic/MillimeterWaveUnit.jpg}
+		\caption{Millimeter Wave Unit}
+	\end{figure}
+	\source{https://en.wikipedia.org/wiki/Millimeter\_wave\_scanner}
 \end{frame}
 
+%------------------------------------------------
+\section{Problem Statement} % Sections can be created in order to organize your presentation into discrete blocks, all sections and subsections are automatically printed in the table of contents as an overview of the talk
+%------------------------------------------------
+
+%------------------------------------------------
+\begin{frame}
+\frametitle{Problem Statement}
+	\begin{itemize}
+	\item Let's talk about humans first.
+	\item Even if someone is carrying forbidden objects, how to tell where it is?
+	\item We define 17 regions out of human body.
+	\end{itemize}
+	\begin{figure}
+		\includegraphics[width=6cm]{../Pic/body_zones.png}
+		\caption{Region Definition}
+	\end{figure}
+	\source{TSA: Definition}
+\end{frame}
+%------------------------------------------------
+\begin{frame}
+\frametitle{Problem Statement}
+	\begin{itemize}
+		\item Given a consecutive images of one person from 16 different angles with labels of 17 regions.
+		\item Train a network to predict if there is dangerous object for each of 17 regions.
+	\end{itemize}
+\end{frame}
 %------------------------------------------------
 
 \begin{frame}
-\frametitle{Blocks of Highlighted Text}
-\begin{block}{Block 1}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer lectus nisl, ultricies in feugiat rutrum, porttitor sit amet augue. Aliquam ut tortor mauris. Sed volutpat ante purus, quis accumsan dolor.
-\end{block}
-
-\begin{block}{Block 2}
-Pellentesque sed tellus purus. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Vestibulum quis magna at risus dictum tempor eu vitae velit.
-\end{block}
-
-\begin{block}{Block 3}
-Suspendisse tincidunt sagittis gravida. Curabitur condimentum, enim sed venenatis rutrum, ipsum neque consectetur orci, sed blandit justo nisi ac lacus.
-\end{block}
+\frametitle{Problem Statement}
+	\begin{figure}
+		\centering
+		\includegraphics[width=6cm]{../Pic/ffefec0cd4e1e2c3fe64bb93f082efdd.png}
+		\caption{16 Images of a same person from different angles.}
+	\end{figure}	
+	\source{TSA: Dataset}
 \end{frame}
 
+%------------------------------------------------
+
+\section{Difficulties}
+\begin{frame}
+\frametitle{Difficulties}
+	\begin{itemize}
+		\item No or little feature and Noise, even human cannot label it well.
+		\item Broken and rigged data: Not all regions are labeled.
+		\item Not much positive labels. Of 1k people and 10k labels, only about 1k positive labels
+		\item The file is too big. Low resolution images(listed above) takes 10M per person.
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Difficulties: Noisy Data}
+	\begin{figure}
+		\centering
+		\includegraphics[width=5cm]{../Pic/noisy.png}
+		\caption{This person is labeled to have dangerous objects in his right arm and crotch}
+	\end{figure}	
+	\source{TSA: Dataset}
+\end{frame}
+
+\begin{frame}
+\frametitle{Difficulties: Rigged Data}
+	\begin{figure}
+		\centering
+		\includegraphics[width=10cm]{../Pic/bars.png}
+		\caption{The most popular to hide things is your right arm and the least popular one is crotch?}
+	\end{figure}	
+\end{frame}
+
+
+%------------------------------------------------
+\section{Out Approach} % Sections can be created in order to organize your presentation into discrete blocks, all sections and subsections are automatically printed in the table of contents as an overview of the talk
+%------------------------------------------------
+
+%------------------------------------------------
+\begin{frame}
+\frametitle{Our Approach: Crop \& PCA}
+	\begin{itemize}
+		\item Crop each image and put the same region together.
+		\item Black background is suitable for PCA
+		\item Problem: Not every region is shown in a certain image.
+		\item Problem: Have to train 17 models for 17 region...
+	\end{itemize}
+	\begin{figure}
+		\centering
+		\includegraphics[width=4cm]{../Pic/cropped.png}
+		\caption{A Crop result for region 4.(No image if this region is not shown in this angle)}
+	\end{figure}
+\end{frame}
+
+%------------------------------------------------
+\begin{frame}
+\frametitle{Intuition: Multi-view CNN(mvcnn)\cite{su15mvcnn}}
+
+	\begin{itemize}
+		\item Used for 3D Shape recognition.
+		\item Reported over 85 \% accuracy on ModelNet40.
+	\end{itemize}
+	\begin{figure}
+		\centering
+		\includegraphics[width=10cm]{../Pic/mvcnn.png}
+		\caption{A structure for mvcnn}
+	\end{figure}
+
+\end{frame}
+
+%------------------------------------------------
+\begin{frame}
+\frametitle{Our Approach: mvcnn with attention}
+
+	\begin{itemize}
+		\item But our task is more tricky since the object may or may not be present, and it can be rather small compared to the main object in the image(human)
+		\item Solution: Force attention
+		\item 2D Convolution with kernel 1x1, 3x3 and 5x5 added to force attention on small areas.
+		\item We maintain the size of the image after convolution and stack them together after 2D convolution.
+	\end{itemize}
+
+\end{frame}
+
+%------------------------------------------------
+\begin{frame}
+\frametitle{Our Approach: mvcnn with LSTM attention}
+
+	\begin{itemize}
+		\item Intuition: 3 convolutions over a same region may provide similar information.
+		\item We add LSTM to network after stack all the convoluted images.
+	\end{itemize}
+
+\end{frame}
+
+%------------------------------------------------
+\begin{frame}
+\frametitle{Stochastic Gradient Descent with Restarts(SGDR) \cite{SGDR}}
+
+	\begin{itemize}
+		\item Basic idea: \textit{Restart} learning rate after some time.
+		\item Learning rate controlled by a cosine function whose cycle increases each time one cycle is reached. 
+		\item It is reported that the error on CIFAR-10 and CIFAR-100 were 3.14\% and 16.21\% respectively\cite{SGDR}.
+	\end{itemize}
+	$$ \eta_t = \eta_{min}^i + \frac{1}{2}(\eta_{max}^i-\eta_{min}^i)(1 + \cos(\frac{T_{curr}}{T_i}\pi))$$
+	$$ T_{i} = T_{i-1} * T_{mult} $$
+	$T_0$, $T_{mult}$, $\eta_{min}^i$, $\eta_{max}^i$ is manually set.
+\end{frame}
+
+%------------------------------------------------
+\begin{frame}
+\frametitle{SGDR in Practice}
+
+	\begin{itemize}
+		\item We set $T_0$, $T_{mult}$ being 100 and 2 respectively.
+		\item $\eta_{min}^i$ remain the same, being $1e^{-5} \forall i$.
+		\item $\eta_{max}^i$ decreases as defined in Base Class \_LRScheduler.
+	\end{itemize}
+
+\end{frame}
+
+%------------------------------------------------
+\begin{frame}
+\frametitle{Our Approach: Filling Channels with Avg \& Std (Experimenting)}
+
+	\begin{itemize}
+		\item Observation: Anomaly appears when the data is either too above or below average.
+		\item Intuition: With average and stand deviation of a pose for all test samples provided, more accurate prediction should be possible.
+		\item Practice: Put Avg in blue channel, Std in green channel and origin image in red channel.(resnet-50 needed 3-channel image anyway)
+		\item Result: Still training.
+	\end{itemize}
+
+\end{frame}
+
+
+%------------------------------------------------
+\section{Experiment} % Sections can be created in order to organize your presentation into discrete blocks, all sections and subsections are automatically printed in the table of contents as an overview of the talk
+%------------------------------------------------
+
+%------------------------------------------------
+\begin{frame}
+\frametitle{Experiment Result}
+
+	
+
+\end{frame}
+
+%------------------------------------------------
+\section{References} % Sections can be created in order to organize your presentation into discrete blocks, all sections and subsections are automatically printed in the table of contents as an overview of the talk
 %------------------------------------------------
 
 \begin{frame}
-\frametitle{Multiple Columns}
-\begin{columns}[c] % The "c" option specifies centered vertical alignment while the "t" option is used for top vertical alignment
+	\frametitle{References}
+	\footnotesize{
+		\begin{thebibliography}{99} % Beamer does not support BibTeX so references must be inserted manually as below
+			\bibitem[Su, 2015]{su15mvcnn} Hang Su, Subhransu Maji, Evangelos Kalogerakis and Erik G. Learned{-}Miller (2015)
+			\newblock Multi-view convolutional neural networks for 3d shape recognition
+			\newblock \emph{Proc. ICCV}
+		\end{thebibliography}
 
-\column{.45\textwidth} % Left column and width
-\textbf{Heading}
-\begin{enumerate}
-\item Statement
-\item Explanation
-\item Example
-\end{enumerate}
-
-\column{.5\textwidth} % Right column and width
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer lectus nisl, ultricies in feugiat rutrum, porttitor sit amet augue. Aliquam ut tortor mauris. Sed volutpat ante purus, quis accumsan dolor.
-
-\end{columns}
+		\begin{thebibliography}{99} % Beamer does not support BibTeX so references must be inserted manually as below
+			\bibitem[Loshchilov, 2016]{SGDR} Ilya Loshchilov and Frank Hutter (2016)
+			\newblock {SGDR:} Stochastic Gradient Descent with Restarts
+			\newblock \emph{CoRR abs/1608.03983}
+		\end{thebibliography}
+	}
 \end{frame}
-
-%------------------------------------------------
-\section{Second Section}
-%------------------------------------------------
-
-\begin{frame}
-\frametitle{Table}
-\begin{table}
-\begin{tabular}{l l l}
-\toprule
-\textbf{Treatments} & \textbf{Response 1} & \textbf{Response 2}\\
-\midrule
-Treatment 1 & 0.0003262 & 0.562 \\
-Treatment 2 & 0.0015681 & 0.910 \\
-Treatment 3 & 0.0009271 & 0.296 \\
-\bottomrule
-\end{tabular}
-\caption{Table caption}
-\end{table}
-\end{frame}
-
-%------------------------------------------------
-
-\begin{frame}
-\frametitle{Theorem}
-\begin{theorem}[Mass--energy equivalence]
-$E = mc^2$
-\end{theorem}
-\end{frame}
-
-%------------------------------------------------
-
-\begin{frame}[fragile] % Need to use the fragile option when verbatim is used in the slide
-\frametitle{Verbatim}
-\begin{example}[Theorem Slide Code]
-\begin{verbatim}
-\begin{frame}
-\frametitle{Theorem}
-\begin{theorem}[Mass--energy equivalence]
-$E = mc^2$
-\end{theorem}
-\end{frame}\end{verbatim}
-\end{example}
-\end{frame}
-
-%------------------------------------------------
-
-\begin{frame}
-\frametitle{Figure}
-Uncomment the code on this slide to include your own image from the same directory as the template .TeX file.
-%\begin{figure}
-%\includegraphics[width=0.8\linewidth]{test}
-%\end{figure}
-\end{frame}
-
-%------------------------------------------------
-
-\begin{frame}[fragile] % Need to use the fragile option when verbatim is used in the slide
-\frametitle{Citation}
-An example of the \verb|\cite| command to cite within the presentation:\\~
-
-This statement requires citation \cite{p1}.
-\end{frame}
-
-%------------------------------------------------
-
-\begin{frame}
-\frametitle{References}
-\footnotesize{
-\begin{thebibliography}{99} % Beamer does not support BibTeX so references must be inserted manually as below
-\bibitem[Smith, 2012]{p1} John Smith (2012)
-\newblock Title of the publication
-\newblock \emph{Journal Name} 12(3), 45 -- 678.
-\end{thebibliography}
-}
-\end{frame}
-
-%------------------------------------------------
-
-\begin{frame}
-\Huge{\centerline{The End}}
-\end{frame}
-
-%----------------------------------------------------------------------------------------
-
 \end{document} 
