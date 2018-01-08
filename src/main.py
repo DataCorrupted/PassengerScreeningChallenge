@@ -15,11 +15,12 @@ import random
 from util import name_to_array, TransformDataset
 from mvcnn import mvcnn
 from sgdr import CosineLR
+from torch.optim.lr_scheduler import StepLR
 
-DEBUG = True
+DEBUG = False
 EPOCH = 100
-START = 51
-FOLDER = "models/lstm/tmp/"
+START = 0
+FOLDER = "models/sgd/tmp/"
 TEST_CNT = 1024 
 
 class AverageMeter(object):
@@ -182,9 +183,8 @@ valid_data_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=2, num
 
 criterion = torch.nn.BCEWithLogitsLoss().cuda()
 optimizer = torch.optim.SGD(model.parameters(), lr=1e-2, momentum=0.9, dampening=0, weight_decay=1e-4, nesterov=True)
-scheduler = CosineLR(optimizer, step_size_min=1e-4, t0=200, tmult=1)
-# Try this for benchmark later.
-# scheduler = StepLR(optimizer, step_size = 0.5)
+# scheduler = CosineLR(optimizer, step_size_min=1e-4, t0=200, tmult=1)
+scheduler = StepLR(optimizer, step_size = 0.5)
 
 torch.backends.cudnn.benchmark = False
 
@@ -192,7 +192,7 @@ if DEBUG:
     time_str = str(int(time.time()))[2::]
     base_dir = "debug/{}".format(time_str)
 else:
-    base_dir = "models/lstm"
+    base_dir = "models/sgd"
 if not os.path.exists(base_dir):
     os.mkdir(base_dir)
     os.mkdir(base_dir+"/tmp")
@@ -244,8 +244,8 @@ for epoch in range(START+1, EPOCH+1):
         torch.save(model.state_dict(), "{}/best_model_{}_{:.4f}.torch".format(base_dir, epoch, this_loss))
 
 print("Saving Model ... ", end = "")
-torch.save(model.state_dict(), "{}/lstm.torch".format(base_dir, epoch))
-torch.save(optimizer.state_dict(), "{}/lstm.torch".format(base_dir, epoch))
+torch.save(model.state_dict(), "{}/sgd.torch".format(base_dir, epoch))
+torch.save(optimizer.state_dict(), "{}/sgd.torch".format(base_dir, epoch))
 print("Model Saved.")
 print("Plotting train/valid loss ... ", end = "")
 # Save a plot of the average loss over time
