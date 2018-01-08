@@ -183,7 +183,7 @@ valid_data_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=2, num
 
 criterion = torch.nn.BCEWithLogitsLoss().cuda()
 optimizer = torch.optim.SGD(model.parameters(), lr=1e-2, momentum=0.9, dampening=0, weight_decay=1e-4, nesterov=True)
-scheduler = CosineLR(optimizer, step_size_min=1e-4, t0=200, tmult=1)
+scheduler = CosineLR(optimizer, step_size_min=1e-4, t0=200, tmult=2)
 # Try this for benchmark later.
 # scheduler = StepLR(optimizer, step_size = 0.5)
 
