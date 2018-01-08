@@ -172,7 +172,7 @@ Shanghaitech University \\ % Your institution for the title page
 	\begin{figure}
 		\centering
 		\includegraphics[width=6cm]{../Pic/ffefec0cd4e1e2c3fe64bb93f082efdd.png}
-		\caption{Region Definition}
+		\caption{16 Images of a same person from different angles.}
 	\end{figure}	
 	\source{TSA: Dataset}
 \end{frame}
@@ -194,7 +194,7 @@ Shanghaitech University \\ % Your institution for the title page
 \frametitle{Difficulties: Noisy Data}
 	\begin{figure}
 		\centering
-		\includegraphics[width=6cm]{../Pic/noisy.png}
+		\includegraphics[width=5cm]{../Pic/noisy.png}
 		\caption{This person is labeled to have dangerous objects in his right arm and crotch}
 	\end{figure}	
 	\source{TSA: Dataset}
@@ -217,16 +217,32 @@ Shanghaitech University \\ % Your institution for the title page
 %------------------------------------------------
 \begin{frame}
 \frametitle{Our Approach: Crop \& PCA}
-
-	
-
+	\begin{itemize}
+		\item Crop each image and put the same region together.
+		\item Black background is suitable for PCA
+		\item Problem: Not every region is shown in a certain image.
+		\item Problem: Have to train 17 models for 17 region...
+	\end{itemize}
+	\begin{figure}
+		\centering
+		\includegraphics[width=4cm]{../Pic/cropped.png}
+		\caption{A Crop result for region 4.(No image if this region is not shown in this angle)}
+	\end{figure}
 \end{frame}
 
 %------------------------------------------------
 \begin{frame}
-\frametitle{Multi-view CNN}
+\frametitle{Intuition: Multi-view CNN(mvcnn)\cite{su15mvcnn}}
 
-	
+	\begin{itemize}
+		\item Used for 3D Shape recognition.
+		\item Reported over 85 \% accuracy on ModelNet40.
+	\end{itemize}
+	\begin{figure}
+		\centering
+		\includegraphics[width=10cm]{../Pic/mvcnn.png}
+		\caption{A structure for mvcnn}
+	\end{figure}
 
 \end{frame}
 
@@ -234,7 +250,12 @@ Shanghaitech University \\ % Your institution for the title page
 \begin{frame}
 \frametitle{Our Approach: mvcnn with attention}
 
-	
+	\begin{itemize}
+		\item But our task is more tricky since the object may or may not be present, and it can be rather small compared to the main object in the image(human)
+		\item Solution: Force attention
+		\item 2D Convolution with kernel 1x1, 3x3 and 5x5 added to force attention on small areas.
+		\item We maintain the size of the image after convolution and stack them together after 2D convolution.
+	\end{itemize}
 
 \end{frame}
 
@@ -242,23 +263,49 @@ Shanghaitech University \\ % Your institution for the title page
 \begin{frame}
 \frametitle{Our Approach: mvcnn with LSTM attention}
 
-	
+	\begin{itemize}
+		\item Intuition: 3 convolutions over a same region may provide similar information.
+		\item We add LSTM to network after stack all the convoluted images.
+	\end{itemize}
 
 \end{frame}
 
 %------------------------------------------------
 \begin{frame}
-\frametitle{SGDR Optimization}
+\frametitle{Stochastic Gradient Descent with Restarts(SGDR) \cite{SGDR}}
 
-	
+	\begin{itemize}
+		\item Basic idea: \textit{Restart} learning rate after some time.
+		\item Learning rate controlled by a cosine function whose cycle increases each time one cycle is reached. 
+		\item It is reported that the error on CIFAR-10 and CIFAR-100 were 3.14\% and 16.21\% respectively\cite{SGDR}.
+	\end{itemize}
+	$$ \eta_t = \eta_{min}^i + \frac{1}{2}(\eta_{max}^i-\eta_{min}^i)(1 + \cos(\frac{T_{curr}}{T_i}\pi))$$
+	$$ T_{i} = T_{i-1} * T_{mult} $$
+	$T_0$, $T_{mult}$, $\eta_{min}^i$, $\eta_{max}^i$ is manually set.
+\end{frame}
+
+%------------------------------------------------
+\begin{frame}
+\frametitle{SGDR in Practice}
+
+	\begin{itemize}
+		\item We set $T_0$, $T_{mult}$ being 100 and 2 respectively.
+		\item $\eta_{min}^i$ remain the same, being $1e^{-5} \forall i$.
+		\item $\eta_{max}^i$ decreases as defined in Base Class \_LRScheduler.
+	\end{itemize}
 
 \end{frame}
 
 %------------------------------------------------
 \begin{frame}
-\frametitle{Our Approach: Filling Channel with Avg \& Std (Experimenting)}
+\frametitle{Our Approach: Filling Channels with Avg \& Std (Experimenting)}
 
-	
+	\begin{itemize}
+		\item Observation: Anomaly appears when the data is either too above or below average.
+		\item Intuition: With average and stand deviation of a pose for all test samples provided, more accurate prediction should be possible.
+		\item Practice: Put Avg in blue channel, Std in green channel and origin image in red channel.(resnet-50 needed 3-channel image anyway)
+		\item Result: Still training.
+	\end{itemize}
 
 \end{frame}
 
@@ -275,4 +322,24 @@ Shanghaitech University \\ % Your institution for the title page
 
 \end{frame}
 
+%------------------------------------------------
+\section{References} % Sections can be created in order to organize your presentation into discrete blocks, all sections and subsections are automatically printed in the table of contents as an overview of the talk
+%------------------------------------------------
+
+\begin{frame}
+	\frametitle{References}
+	\footnotesize{
+		\begin{thebibliography}{99} % Beamer does not support BibTeX so references must be inserted manually as below
+			\bibitem[Su, 2015]{su15mvcnn} Hang Su, Subhransu Maji, Evangelos Kalogerakis and Erik G. Learned{-}Miller (2015)
+			\newblock Multi-view convolutional neural networks for 3d shape recognition
+			\newblock \emph{Proc. ICCV}
+		\end{thebibliography}
+
+		\begin{thebibliography}{99} % Beamer does not support BibTeX so references must be inserted manually as below
+			\bibitem[Loshchilov, 2016]{SGDR} Ilya Loshchilov and Frank Hutter (2016)
+			\newblock {SGDR:} Stochastic Gradient Descent with Restarts
+			\newblock \emph{CoRR abs/1608.03983}
+		\end{thebibliography}
+	}
+\end{frame}
 \end{document} 
