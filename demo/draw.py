@@ -1,8 +1,3 @@
-import torch
-import torchvision
-import numpy as np
-import time
-import os
 import matplotlib
 # Add this to save all the plot
 matplotlib.use('Agg')
