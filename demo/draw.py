@@ -11,11 +11,11 @@ import matplotlib.pyplot as plt
 LSTM_epo = 50
 ATTE_epo = 50
 
-with open('lstm_{}.txt'.format(LSTM_epo)) as loss:
+with open('log/lstm_{}.txt'.format(LSTM_epo)) as loss:
     # Danger but I don't care.
     loss.readline() # Throw away training loss
     lstm_loss = eval(loss.readline())
-with open('attention_{}.txt'.format(ATTE_epo)) as loss:
+with open('log/attention_{}.txt'.format(ATTE_epo)) as loss:
     # Danger but I don't care.
     loss.readline() # Throw away training loss
     attention_loss = eval(loss.readline())
