@@ -129,7 +129,6 @@ with open('stage1_labels.csv') as train_file:
     # Use dict for easier indexing.
     name_to_vector = {}
     for line in train_file:
-        print(line)
         name_zone, label = line.strip().split(',')
         name, zone = name_zone.split('_')
         # Take the number out.
