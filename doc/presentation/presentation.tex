@@ -274,18 +274,6 @@ Shanghaitech University \\ % Your institution for the title page
 
 %------------------------------------------------
 \begin{frame}
-\frametitle{Our Approach: Network Structure}
-
-	\begin{figure}
-		\centering
-		\includegraphics[width=12cm]{../Pic/Network.pdf}
-		\caption{Our Network Structure.}
-	\end{figure}
-
-\end{frame}
-
-%------------------------------------------------
-\begin{frame}
 \frametitle{Stochastic Gradient Descent with Restarts(SGDR) \cite{SGDR}}
 
 	\begin{itemize}
@@ -306,6 +294,22 @@ Shanghaitech University \\ % Your institution for the title page
 		\item We set $T_0$, $T_{mult}$ being 100 and 2 respectively.
 		\item Others the same with the CosineAnnealingLR defined in pytorch
 	\end{itemize}
+
+\end{frame}
+
+%------------------------------------------------
+\begin{frame}
+\frametitle{Our Approach: Network Structure}
+	\begin{itemize}
+		\item Criterion: BCEWithLogitsLoss()
+		\item Optimizer: torch.optim.SGD
+		\item Scheduler: SGDR
+	\end{itemize}
+	\begin{figure}
+		\centering
+		\includegraphics[width=12cm]{../Pic/Network.pdf}
+		\caption{Our Network Structure.}
+	\end{figure}
 
 \end{frame}
 
@@ -360,7 +364,7 @@ Shanghaitech University \\ % Your institution for the title page
 	\frametitle{References}
 	\footnotesize{
 		\begin{thebibliography}{99} % Beamer does not support BibTeX so references must be inserted manually as below
-			\bibitem[Su, 2015]{su15MVCNN} Hang Su, Subhransu Maji, Evangelos Kalogerakis and Erik G. Learned{-}Miller (2015)
+			\bibitem[Su, 2015]{su15mvcnn} Hang Su, Subhransu Maji, Evangelos Kalogerakis and Erik G. Learned{-}Miller (2015)
 			\newblock Multi-view convolutional neural networks for 3d shape recognition
 			\newblock \emph{Proc. ICCV}
 		\end{thebibliography}
