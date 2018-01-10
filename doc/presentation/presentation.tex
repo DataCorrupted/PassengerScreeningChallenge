@@ -297,22 +297,6 @@ Shanghaitech University \\ % Your institution for the title page
 
 %------------------------------------------------
 \begin{frame}
-\frametitle{Our Approach: Network Structure}
-	\begin{itemize}
-		\item Criterion: BCEWithLogitsLoss()
-		\item Optimizer: torch.optim.SGD
-		\item Scheduler: SGDR
-	\end{itemize}
-	\begin{figure}
-		\centering
-		\includegraphics[width=12cm]{../Pic/Network.pdf}
-		\caption{Our Network Structure.}
-	\end{figure}
-
-\end{frame}
-
-%------------------------------------------------
-\begin{frame}
 \frametitle{Our Approach: Filling Channels with Avg \& Std (Experimenting)}
 
 	\begin{itemize}
@@ -328,6 +312,23 @@ Shanghaitech University \\ % Your institution for the title page
 %------------------------------------------------
 \section{Experiment} % Sections can be created in order to organize your presentation into discrete blocks, all sections and subsections are automatically printed in the table of contents as an overview of the talk
 %------------------------------------------------
+
+%------------------------------------------------
+\begin{frame}
+\frametitle{Experiment: Network Structure}
+	\begin{itemize}
+		\item Criterion: BCEWithLogitsLoss()
+		\item Optimizer: torch.optim.SGD
+		\item Scheduler: SGDR
+		\item 10 hours for 25 epochs.
+	\end{itemize}
+	\begin{figure}
+		\centering
+		\includegraphics[width=12cm]{../Pic/Network.pdf}
+		\caption{Our Network Structure.}
+	\end{figure}
+
+\end{frame}
 
 %------------------------------------------------
 \begin{frame}
