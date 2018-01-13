@@ -140,13 +140,22 @@ We set $T_0$, $T_{mult}$ being 100 and 2 respectively. Others the same with the 
 \section{Experiment}
 To predict a True/False problem we choose to output a vector of dimension $17 \times 1$ with 17 probabilities. 
 We used Binary Cross Entropy to determine our error. However, it's still difficult to calculate errors when the labeled vector can be broken with only half of them being true.(Others are unlabeled and we decided them should be 0).
-Below is a table and a Image we will use to show the training results of different network.  
+Below is a table and a Image we will use to show the training results of different network.
+\par In practice we used lowest resolution(660*512), and a small batch size of 2, considering how much memory our model may take up.  
+\begin{figure}[!tp]
+	\includegraphics[width=.5\textwidth]{../Pic/3models}
+	\caption{3 Main experiments we have done and their Validation loss}
+\end{figure}
+\par
+It can be seen that without LSTM, MVCNN and attention together can't be used to train a good model, for similar information's correlation is ignored. But with the help of LSTM the loss can drop quickly. But it is worth mentioning even 50 epochs took almost 20 hours to train.
+\par
+Another indication is that simply SGD with decaying learning rate did poorly in terms of training. For 10 epochs there is almost no loss change. Thus we stopped the experiment, considering it would be meaningless to wait for it to drop to an acceptable level.(Likely it will take longer than 100 hours and we are short in GPU resource.)
 
 \section{Discussion and other thinkings}
 Since the provided data is monochrome and all of them are registered, we naturally came up with the idea of sparse representation. We experiment this idea on regional cropped images.
 
 \subsection{Image Crop}
-We have considered the possibility of taking 512*660*16 images as input and a vector of size 17*1 describing the possibility of presence of dangerous objects. However, considering there isn't much positive outcomes, we decided to crop the images and for each zone, only see certain sector of the image.
+We have considered the possibility of taking 16 images with size of 660*512 images as input and a vector of size 17*1 describing the possibility of presence of dangerous objects. However, considering there isn't much positive outcomes, we decided to crop the images and for each zone, only see certain sector of the image.
 
 The image is cropped into 16 sectors, each sector has size 250*250 pixels. The table listed the upper left conner of each sector:
 \begin{table}[!htb]
