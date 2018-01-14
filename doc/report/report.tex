@@ -98,8 +98,7 @@ We experimented the sparse representation approach with PCA on cropped regional 
 \caption{Pipeline}
 \label{network}
 \end{figure*}
-\subsection{Contribuction}
-\par We would like to thank Ding Peng for drafing the final report and milestone report and plotting the structure of our network. His idea of PCA was really brilliant and helpful and he devoted much time researching on that.
+
 \section{Related Work}
 Not much of work has been conducted on such topic. However, much research has been done regarding 3D object recognition. Although these are two different tasks, which have something in common.
 
@@ -147,10 +146,10 @@ We set $T_0$, $T_{mult}$ being 100 and 2 respectively. Others the same with the 
 
 
 \section{Experiment}
-To predict a True/False problem we choose to output a vector of dimension $17 \times 1$ with 17 probabilities. 
+To predict a True/False problem we choose to output a vector of dimension $17 \times 1$ with 17 probabilities.
 We used Binary Cross Entropy to determine our error. However, it's still difficult to calculate errors when the labeled vector can be broken with only half of them being true.(Others are unlabeled and we decided them should be 0).
 Below is a table and a Image we will use to show the training results of different network.
-\par In practice we used lowest resolution(660*512), and a small batch size of 2, considering how much memory our model may take up.  
+\par In practice we used lowest resolution(660*512), and a small batch size of 2, considering how much memory our model may take up.
 \begin{figure}[!tp]
 	\includegraphics[width=.5\textwidth]{../Pic/3models}
 	\caption{3 Main experiments we have done and their Validation loss}
@@ -205,7 +204,10 @@ For the data set given, for now, there are 1871 positive outcomes over 19500 sam
 We are upsampling the positive outcomes by duplicate positive outcomes and mirror positive images. Thus we will have more than 5000 positive images. It is unclear whether this is enough.
 
 We are up sampling the positive outcomes by duplicate positive outcomes and mirror positive images. Thus we will be having more than 5000 positive images. It's unclear whether this is enough.
-        
+
+\subsection{Acknowledgement}
+\par We would like to thank Peng Ding for drafing the milestone and final report and plotting the structure of our network. His idea of PCA was really brilliant and helpful and he devoted much time researching on that.
+
 \bibliographystyle{IEEEtran}
 \bibliography{report}
 \end{document}
