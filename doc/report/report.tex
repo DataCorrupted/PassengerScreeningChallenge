@@ -121,6 +121,12 @@ Thus the data sent to MVCNN has size $N\times16\times 3\times 660 \times 512$.
 
 Each MVCNN will report 2048 channels of information with size $N \times 16 \times 2046 \times 10 \times 8$.
 We have considered using the mean and variance of all humans of one pose as the other two channel, putting the original monochrome image as the red-channel. This alternative should be providing more insight than the naive duplication. This is still under testing.
+\begin{figure}[!tp]
+	\centering
+	\includegraphics[width=.2\textwidth]{../Pic/mean_perspective_1}
+	\includegraphics[width=.2\textwidth]{../Pic/std_perspective_1}
+	\caption{Mean and Std of one pose.}
+\end{figure}
 
 \subsection{Convolution attention}
 Our task is more difficult since we are not interested in the object, which already known as a human posed in certain ways. Rather, we are curious about the unnatural items hidden on the object which may or may not be visible and is significantly smaller than human. To accomplish this, we force an attention on it, which are three convolution layers of size $1\times1$, $3\times3$ and $5\times5$ to force the attention of different scale. 3 convolution should output data with size $N\times16\times512\times 10\times8$, $N\times16\times256\times5\times4$, $N\times16\times128\times4\times3$.
